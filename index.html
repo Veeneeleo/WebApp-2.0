@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>DVS Crates (Bluefy)</title>
+  <title>DVS Crates</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 16px; }
@@ -10,7 +10,7 @@
     .pill { padding:6px 10px; border-radius:999px; background:#eee; }
     .good{ background:#d6ffe0; } .warn{ background:#fff2c9; } .bad{ background:#ffd6d6; }
     .card { border:1px solid #ddd; border-radius:12px; padding:12px; margin:12px 0; }
-    .row { display:flex; gap:10px; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee; }
+    .row { display:flex; gap:10px; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid #eee; }
     button,input,select { padding:10px 12px; border-radius:10px; border:1px solid #ccc; background:#fff; }
     button:disabled { opacity:0.5; }
     input[type="text"] { width:min(520px,100%); }
@@ -18,8 +18,10 @@
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12px; }
     .grid { display:grid; grid-template-columns: 1fr; gap: 10px; }
     @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
-    .results .row { align-items:flex-start; }
     .muted { opacity: 0.75; }
+    .btnRow { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .chip { display:inline-block; padding:2px 8px; border-radius:999px; background:#f3f3f3; font-size:12px; }
+    .danger { border-color:#f3b3b3; }
   </style>
 </head>
 <body>
@@ -30,18 +32,25 @@
 
   <div class="grid">
     <section class="card">
-      <h2>1) Connect to Raspberry Pi (BLE via Bluefy)</h2>
+      <h2>1) Connect to Raspberry Pi (BLE)</h2>
+
       <div class="row">
-        <div><b>Bluetooth</b><br/><small>Requires HTTPS + Bluefy.</small></div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div>
+          <b>Bluetooth</b><br/>
+          <small>Bluefy + HTTPS required.</small>
+        </div>
+        <div class="btnRow">
           <button id="bleConnectBtn">Connect</button>
           <button id="bleDisconnectBtn" disabled>Disconnect</button>
         </div>
       </div>
 
       <div class="row">
-        <div><b>Status</b><br/><small>Polls STATUS and updates VINYL pill.</small></div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div>
+          <b>Status</b><br/>
+          <small>Updates VINYL pill via STATUS polling.</small>
+        </div>
+        <div class="btnRow">
           <button id="statusBtn" disabled>STATUS</button>
           <button id="startPollBtn" disabled>Start Poll</button>
           <button id="stopPollBtn" disabled>Stop Poll</button>
@@ -53,56 +62,69 @@
     </section>
 
     <section class="card">
-      <h2>2) Spotify Login + Search (≤ 10 min)</h2>
+      <h2>2) Spotify Login + Search (auto)</h2>
+
       <div class="row">
-        <div><b>Spotify</b><br/><small>Set Client ID + Redirect URI must match exactly.</small></div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div>
+          <b>Spotify</b><br/>
+          <small>Search auto-runs while typing. Tracks &gt; 10 min are disabled.</small>
+        </div>
+        <div class="btnRow">
           <button id="spotifyLoginBtn">Login</button>
           <button id="spotifyLogoutBtn">Logout</button>
         </div>
       </div>
+
       <div id="me" class="muted"></div>
 
-      <div class="row">
-        <input id="searchBox" type="text" placeholder="Search tracks…" />
-        <button id="searchBtn">Search</button>
+      <div class="row" style="border-bottom:none;">
+        <div style="width:100%;">
+          <input id="searchBox" type="text" placeholder="Type to search tracks…" />
+          <div class="muted"><small id="searchHint"></small></div>
+        </div>
       </div>
 
-      <div class="results" id="results"></div>
+      <div id="results"></div>
     </section>
   </div>
 
   <section class="card">
-    <h2>3) Upload audio files to Pi (WAV/MP3 from phone)</h2>
+    <h2>3) Current Playlist (Crate)</h2>
+
     <div class="row">
-      <div><b>Choose files</b><br/><small>Uploads via UPLOAD_BEGIN name size + raw bytes.</small></div>
-      <input id="filePicker" type="file" multiple />
+      <div>
+        <b>Selected tracks</b> <span class="chip" id="selectedCount">0</span><br/>
+        <small>Saved on your phone (localStorage). You can send the crate to the Pi via BLE (metadata).</small>
+      </div>
+      <div class="btnRow">
+        <button id="clearSelectedBtn">Clear</button>
+      </div>
     </div>
-    <div class="row">
-      <div id="uploadProgress" class="muted"></div>
-      <div><button id="uploadBtn" disabled>Upload</button></div>
+
+    <ol id="selected"></ol>
+
+    <div class="row" style="border-bottom:none;">
+      <input id="crateName" type="text" placeholder="Crate name (e.g., My Set 1)" />
+      <div class="btnRow">
+        <button id="saveCrateBtn">Save Crate</button>
+      </div>
     </div>
   </section>
 
   <section class="card">
-    <h2>4) Library on Pi (LIST / PLAY / STOP / DELETE)</h2>
+    <h2>4) Saved Crates</h2>
+
     <div class="row">
-      <div><b>Pi tracks</b><br/><small>Uses dvs_core commands via BLE bridge.</small></div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button id="listBtn" disabled>LIST</button>
-        <button id="stopBtn" disabled>STOP</button>
+      <div>
+        <b>Your crates</b><br/>
+        <small>Stored in localStorage on your phone.</small>
+      </div>
+      <div class="btnRow">
+        <button id="refreshCratesBtn">Refresh</button>
       </div>
     </div>
 
-    <div class="row">
-      <select id="piTrackSelect" style="width:min(520px,100%);" disabled></select>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button id="playBtn" disabled>PLAY</button>
-        <button id="deleteBtn" disabled>DELETE</button>
-      </div>
-    </div>
-
-    <div class="mono" id="piListBox" style="white-space:pre-wrap;"></div>
+    <ul id="crates"></ul>
   </section>
 
 <script>
@@ -121,7 +143,7 @@ const UART_TX_UUID      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // notify
 
 const $ = (id) => document.getElementById(id);
 
-function logBle(msg) { $("bleLog").textContent = msg + "\n" + $("bleLog").textContent; }
+function logBle(msg) { $("bleLog").textContent = msg + "\\n" + $("bleLog").textContent; }
 function setVinylPill({ ready, lock }) {
   const pill = $("vinylPill");
   if (ready) { pill.className="pill good"; pill.textContent="VINYL: READY"; }
@@ -130,6 +152,13 @@ function setVinylPill({ ready, lock }) {
 }
 function enc(str){ return new TextEncoder().encode(str); }
 
+/* ======================== Local crate storage ======================== */
+const LS_KEY = "dvs_crates_v2";
+function loadCrates(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; } }
+function saveCrates(crates){ localStorage.setItem(LS_KEY, JSON.stringify(crates)); }
+/* ================================================================ */
+
+/* ======================== BLE client ======================== */
 let ble = {
   device:null, server:null, rx:null, tx:null,
   connected:false,
@@ -144,32 +173,20 @@ function setBleUi(connected) {
   $("statusBtn").disabled = !connected;
   $("startPollBtn").disabled = !connected;
   $("stopPollBtn").disabled = !connected;
-  $("uploadBtn").disabled = !connected;
-  $("listBtn").disabled = !connected;
-  $("playBtn").disabled = !connected;
-  $("stopBtn").disabled = !connected;
-  $("deleteBtn").disabled = !connected;
-  $("piTrackSelect").disabled = !connected;
 }
 
 async function bleWriteLine(line) {
   if (!ble.connected) throw new Error("BLE not connected");
-  if (!line.endsWith("\n")) line += "\n";
+  if (!line.endsWith("\\n")) line += "\\n";
   const data = enc(line);
   if (ble.rx.writeValueWithoutResponse) await ble.rx.writeValueWithoutResponse(data);
   else await ble.rx.writeValue(data);
 }
 
-async function bleWriteBytes(u8) {
-  if (!ble.connected) throw new Error("BLE not connected");
-  if (ble.rx.writeValueWithoutResponse) await ble.rx.writeValueWithoutResponse(u8);
-  else await ble.rx.writeValue(u8);
-}
-
 function onBleText(text) {
   ble.notifyBuf += text;
   let idx;
-  while ((idx = ble.notifyBuf.indexOf("\n")) >= 0) {
+  while ((idx = ble.notifyBuf.indexOf("\\n")) >= 0) {
     const line = ble.notifyBuf.slice(0, idx).trim();
     ble.notifyBuf = ble.notifyBuf.slice(idx + 1);
     if (!line) continue;
@@ -185,10 +202,8 @@ function onBleText(text) {
 }
 
 async function bleConnect() {
-  // Helpful environment info
-  const secure = window.isSecureContext;
-  if (!secure) alert("Not a secure context. You MUST serve this page over HTTPS for Web Bluetooth.");
-  if (!navigator.bluetooth) alert("navigator.bluetooth not available. Use Bluefy on iOS and HTTPS.");
+  if (!window.isSecureContext) alert("Not secure context. Must be HTTPS.");
+  if (!navigator.bluetooth) alert("navigator.bluetooth not available in this browser.");
 
   ble.device = await navigator.bluetooth.requestDevice({
     filters: [{ services: [UART_SERVICE_UUID] }],
@@ -219,98 +234,31 @@ async function bleDisconnect() {
   logBle("BLE disconnected.");
 }
 
-async function statusOnce() { await bleWriteLine("STATUS"); }
+async function statusOnce(){ await bleWriteLine("STATUS"); }
 
 function startPoll() {
   stopPoll();
-  ble.pollTimer = setInterval(() => { if (ble.connected) bleWriteLine("STATUS").catch(()=>{}); }, 300);
+  ble.pollTimer = setInterval(() => {
+    if (ble.connected) bleWriteLine("STATUS").catch(()=>{});
+  }, 300);
   logBle("Polling STATUS…");
 }
+
 function stopPoll() {
   if (ble.pollTimer) clearInterval(ble.pollTimer);
   ble.pollTimer = null;
   logBle("Stopped polling.");
 }
-
-async function uploadFiles() {
-  const files = [...$("filePicker").files];
-  if (!files.length) return alert("Pick WAV/MP3 files first.");
-
-  for (const f of files) {
-    const safeName = f.name.replace(/\s+/g, "_");
-    const buf = await f.arrayBuffer();
-    const bytes = new Uint8Array(buf);
-
-    $("uploadProgress").textContent = `Uploading ${safeName}…`;
-    await bleWriteLine(`UPLOAD_BEGIN ${safeName} ${bytes.byteLength}`);
-
-    // Chunk size tuned for iOS BLE stability
-    const chunkSize = 180;
-    let sent = 0;
-    while (sent < bytes.byteLength) {
-      const end = Math.min(sent + chunkSize, bytes.byteLength);
-      await bleWriteBytes(bytes.slice(sent, end));
-      sent = end;
-      $("uploadProgress").textContent = `Uploading ${safeName}: ${Math.round((sent/bytes.byteLength)*100)}%`;
-      await new Promise(r => setTimeout(r, 0));
-    }
-  }
-
-  $("uploadProgress").textContent = "Uploads done.";
-  await listPi();
-}
-
-async function listPi() {
-  $("piListBox").textContent = "";
-  $("piTrackSelect").innerHTML = "";
-  await bleWriteLine("LIST");
-
-  // Best-effort parse the most recent block from the log:
-  setTimeout(() => {
-    const lines = $("bleLog").textContent.split("\n").map(s => s.trim()).filter(Boolean);
-    const end = lines.indexOf("."); // because we prepend log, most recent "." is near top
-    if (end < 0) return;
-
-    const block = lines.slice(0, end)
-      .filter(s => !s.startsWith("READY ") && !s.startsWith("LOCK ") && !s.startsWith("POS_MS ") && !s.startsWith("RATE "))
-      .filter(s => s !== "LIST" && s !== "OK" && s !== "ERR");
-
-    const names = [...new Set(block)].reverse();
-
-    const sel = $("piTrackSelect");
-    sel.innerHTML = "";
-    for (const name of names) {
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name;
-      sel.appendChild(opt);
-    }
-    $("piListBox").textContent = names.length ? names.join("\n") : "(No tracks found — upload files first.)";
-  }, 250);
-}
-
-async function playSelected() {
-  const name = $("piTrackSelect").value;
-  if (!name) return alert("No track selected.");
-  await bleWriteLine(`PLAY ${name}`);
-  await statusOnce();
-}
-async function stopPlayback() { await bleWriteLine("STOP"); await statusOnce(); }
-async function deleteSelected() {
-  const name = $("piTrackSelect").value;
-  if (!name) return alert("No track selected.");
-  if (!confirm(`Delete ${name}?`)) return;
-  await bleWriteLine(`DELETE ${name}`);
-  await listPi();
-  await statusOnce();
-}
+/* ================================================================ */
 
 /* ======================== Spotify PKCE ======================== */
 function base64urlencode(a) {
   return btoa(String.fromCharCode(...new Uint8Array(a)))
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    .replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/, "");
 }
-async function sha256(plain) { return crypto.subtle.digest("SHA-256", new TextEncoder().encode(plain)); }
+async function sha256(plain) {
+  return crypto.subtle.digest("SHA-256", new TextEncoder().encode(plain));
+}
 function randomString(len = 64) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let s = "";
@@ -366,6 +314,7 @@ function spotifyLogout() {
   localStorage.removeItem("spotify_token");
   $("me").textContent = "";
   $("results").innerHTML = "";
+  $("searchHint").textContent = "";
   alert("Logged out.");
 }
 
@@ -384,62 +333,231 @@ async function loadMe() {
   const me = await spotifyGET("/me");
   $("me").textContent = `Logged in as: ${me.display_name || me.id}`;
 }
+/* ================================================================ */
 
-function renderResults(items) {
+/* ======================== Auto search + playlist builder ======================== */
+const selected = []; // current in-progress crate
+
+function fmtDur(ms){
+  const s = Math.round(ms/1000);
+  const m = Math.floor(s/60);
+  const r = s % 60;
+  return `${m}:${String(r).padStart(2,'0')}`;
+}
+
+function renderSelected(){
+  $("selectedCount").textContent = String(selected.length);
+  const ol = $("selected");
+  ol.innerHTML = "";
+  selected.forEach((t, idx) => {
+    const li = document.createElement("li");
+    li.className = "row";
+    li.style.borderBottom = "1px solid #eee";
+    li.innerHTML = `
+      <div style="max-width:70%;">
+        <b>${t.name}</b> — ${t.artist}<br/>
+        <small>${fmtDur(t.duration_ms)}</small>
+      </div>
+      <div class="btnRow">
+        <button data-act="up">↑</button>
+        <button data-act="down">↓</button>
+        <button class="danger" data-act="remove">Remove</button>
+      </div>
+    `;
+    li.querySelector('[data-act="up"]').onclick = () => {
+      if (idx === 0) return;
+      const tmp = selected[idx-1]; selected[idx-1] = selected[idx]; selected[idx] = tmp;
+      renderSelected();
+    };
+    li.querySelector('[data-act="down"]').onclick = () => {
+      if (idx === selected.length-1) return;
+      const tmp = selected[idx+1]; selected[idx+1] = selected[idx]; selected[idx] = tmp;
+      renderSelected();
+    };
+    li.querySelector('[data-act="remove"]').onclick = () => {
+      selected.splice(idx, 1);
+      renderSelected();
+    };
+    ol.appendChild(li);
+  });
+}
+
+function isAlreadySelected(trackId){
+  return selected.some(t => t.id === trackId);
+}
+
+function renderResults(items){
   const root = $("results");
   root.innerHTML = "";
-  for (const t of items) {
+
+  items.forEach((t) => {
     const tooLong = t.duration_ms > MAX_MS;
-    const div = document.createElement("div");
-    div.className = "row";
-    div.innerHTML = `
-      <div style="max-width: 70%;">
+    const already = isAlreadySelected(t.id);
+
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <div style="max-width:70%;">
         <b>${t.name}</b> — ${t.artist}<br/>
-        <small>${Math.round(t.duration_ms/1000)}s ${tooLong ? "(too long)" : ""}</small>
+        <small>${fmtDur(t.duration_ms)} ${tooLong ? "(too long)" : ""}</small>
       </div>
-      <div><button ${tooLong ? "disabled" : ""} data-uri="${t.uri}">Add</button></div>
+      <div class="btnRow">
+        <button ${tooLong || already ? "disabled" : ""}>${already ? "Added" : "Add"}</button>
+      </div>
     `;
-    div.querySelector("button").onclick = () => alert("Crate builder omitted in this debug version (we can add it back once login works).");
-    root.appendChild(div);
+    row.querySelector("button").onclick = () => {
+      if (tooLong) return;
+      if (isAlreadySelected(t.id)) return;
+      selected.push(t);
+      renderSelected();
+      // update button state
+      renderResults(items);
+    };
+
+    root.appendChild(row);
+  });
+}
+
+let searchTimer = null;
+let lastQuery = "";
+
+async function doSearchAuto(q){
+  if (!spotifyToken()) {
+    $("searchHint").textContent = "Login to Spotify to search.";
+    return;
+  }
+  q = q.trim();
+  if (q.length < 2) {
+    $("results").innerHTML = "";
+    $("searchHint").textContent = "Type at least 2 characters.";
+    return;
+  }
+  if (q === lastQuery) return;
+  lastQuery = q;
+
+  $("searchHint").textContent = "Searching…";
+  try {
+    const data = await spotifyGET(`/search?type=track&limit=20&q=${encodeURIComponent(q)}`);
+    const items = data.tracks.items.map(tr => ({
+      id: tr.id,
+      uri: tr.uri,
+      name: tr.name,
+      artist: tr.artists?.[0]?.name ?? "Unknown",
+      duration_ms: tr.duration_ms,
+    }));
+    $("searchHint").textContent = `Showing results for: "${q}"`;
+    renderResults(items);
+  } catch (e) {
+    $("searchHint").textContent = "Search failed (check login).";
+    console.error(e);
   }
 }
 
-async function doSearch() {
-  if (!spotifyToken()) return alert("Login to Spotify first.");
-  const q = $("searchBox").value.trim();
-  if (!q) return;
-  const data = await spotifyGET(`/search?type=track&limit=20&q=${encodeURIComponent(q)}`);
-  const items = data.tracks.items.map(tr => ({
-    id: tr.id, uri: tr.uri, name: tr.name,
-    artist: tr.artists?.[0]?.name ?? "Unknown",
-    duration_ms: tr.duration_ms,
-  }));
-  renderResults(items);
+function onSearchInput(){
+  const q = $("searchBox").value;
+  if (searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => doSearchAuto(q), 250); // debounce
+}
+
+function saveCrate(){
+  const name = $("crateName").value.trim();
+  if (!name) return alert("Enter a crate name.");
+  if (!selected.length) return alert("Add some tracks first.");
+
+  const crates = loadCrates();
+  crates.unshift({
+    id: crypto.randomUUID(),
+    name,
+    tracks: [...selected],
+    createdAt: Date.now(),
+  });
+  saveCrates(crates);
+
+  selected.length = 0;
+  renderSelected();
+  $("crateName").value = "";
+  refreshCrates();
+  alert("Crate saved on this phone.");
+}
+
+function refreshCrates(){
+  const crates = loadCrates();
+  const ul = $("crates");
+  ul.innerHTML = "";
+
+  crates.forEach((c) => {
+    const li = document.createElement("li");
+    li.className = "row";
+    li.innerHTML = `
+      <div style="max-width:70%;">
+        <b>${c.name}</b> <span class="chip">${c.tracks.length} tracks</span><br/>
+        <small>${new Date(c.createdAt).toLocaleString()}</small>
+      </div>
+      <div class="btnRow">
+        <button data-act="send" ${ble.connected ? "" : "disabled"}>Send to Pi</button>
+        <button data-act="load">Load</button>
+        <button class="danger" data-act="del">Delete</button>
+      </div>
+    `;
+
+    li.querySelector('[data-act="send"]').onclick = async () => {
+      if (!ble.connected) return alert("Connect BLE first.");
+      // Metadata only: your Pi bridge can store/ignore.
+      await bleWriteLine(`CRATE_BEGIN ${c.name}`);
+      for (const t of c.tracks) {
+        await bleWriteLine(`CRATE_TRACK ${t.name} | ${t.artist} | ${t.duration_ms} | ${t.uri}`);
+      }
+      await bleWriteLine("CRATE_END");
+      alert("Crate metadata sent to Pi.");
+    };
+
+    li.querySelector('[data-act="load"]').onclick = () => {
+      selected.length = 0;
+      c.tracks.forEach(t => selected.push(t));
+      renderSelected();
+      $("crateName").value = c.name;
+      alert("Crate loaded into Current Playlist.");
+    };
+
+    li.querySelector('[data-act="del"]').onclick = () => {
+      if (!confirm(`Delete crate "${c.name}"?`)) return;
+      const next = crates.filter(x => x.id !== c.id);
+      saveCrates(next);
+      refreshCrates();
+    };
+
+    ul.appendChild(li);
+  });
 }
 /* ================================================================ */
 
-// Wire UI
-$("bleConnectBtn").onclick = () => bleConnect().catch(e => alert("BLE connect error: " + e));
+/* ======================== Wire UI ======================== */
+$("bleConnectBtn").onclick = () => bleConnect().catch(e => alert("BLE connect error: " + (e?.message || e)));
 $("bleDisconnectBtn").onclick = () => bleDisconnect();
-$("statusBtn").onclick = () => statusOnce().catch(e => alert("STATUS error: " + e));
+
+$("statusBtn").onclick = () => statusOnce().catch(e => alert("STATUS error: " + (e?.message || e)));
 $("startPollBtn").onclick = () => startPoll();
 $("stopPollBtn").onclick = () => stopPoll();
-$("uploadBtn").onclick = () => uploadFiles().catch(e => alert("Upload error: " + e));
-$("listBtn").onclick = () => listPi().catch(e => alert("LIST error: " + e));
-$("playBtn").onclick = () => playSelected().catch(e => alert("PLAY error: " + e));
-$("stopBtn").onclick = () => stopPlayback().catch(e => alert("STOP error: " + e));
-$("deleteBtn").onclick = () => deleteSelected().catch(e => alert("DELETE error: " + e));
 
-$("spotifyLoginBtn").onclick = () => spotifyLogin().catch(e => alert("Spotify login error: " + e));
+$("spotifyLoginBtn").onclick = () => spotifyLogin().catch(e => alert("Spotify login error: " + (e?.message || e)));
 $("spotifyLogoutBtn").onclick = () => spotifyLogout();
-$("searchBtn").onclick = () => doSearch().catch(e => alert("Search error: " + e));
 
+$("searchBox").addEventListener("input", onSearchInput);
+
+$("saveCrateBtn").onclick = () => saveCrate();
+$("refreshCratesBtn").onclick = () => refreshCrates();
+$("clearSelectedBtn").onclick = () => { selected.length = 0; renderSelected(); };
+/* ================================================================ */
+
+/* ======================== Boot ======================== */
 setBleUi(false);
+renderSelected();
+refreshCrates();
 
-// Boot: handle Spotify redirect
 (async function boot(){
   $("env").textContent =
-    `secureContext=${window.isSecureContext} | navigator.bluetooth=${!!navigator.bluetooth} | URL=${REDIRECT_URI}`;
+    `secureContext=${window.isSecureContext} | navigator.bluetooth=${!!navigator.bluetooth} | redirect=${REDIRECT_URI}`;
+
   const url = new URL(location.href);
   const code = url.searchParams.get("code");
   if (code) {
