@@ -3,7 +3,7 @@ import { BleUartClient } from "./ble_uart.js";
 
 // ======================== Spotify settings (CHANGE ME) ======================
 // Create an app in Spotify Developer Dashboard and paste client id here.
-const SPOTIFY_CLIENT_ID = "CHANGE_ME_SPOTIFY_CLIENT_ID";
+const SPOTIFY_CLIENT_ID = "81cff1fc219b442abfb47d9a3bba8960";
 
 // Must match Redirect URI configured in Spotify app settings.
 // If you host at https://example.com/dvs/ then this should be that exact URL.
