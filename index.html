@@ -1,0 +1,163 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>DVS Crates (Bluefy)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 16px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .pill { padding:6px 10px; border-radius:999px; background:#eee; }
+    .good{ background:#d6ffe0; } .warn{ background:#fff2c9; } .bad{ background:#ffd6d6; }
+    .card { border:1px solid #ddd; border-radius:12px; padding:12px; margin:12px 0; }
+    .row { display:flex; gap:10px; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee; }
+    button,input,select { padding:10px 12px; border-radius:10px; border:1px solid #ccc; background:#fff; }
+    button:disabled { opacity:0.5; }
+    input[type="text"] { width:min(520px,100%); }
+    small { opacity:0.7; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12px; }
+    .grid { display:grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    .results .row { align-items:flex-start; }
+    .muted { opacity: 0.75; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DVS Crates</h1>
+    <div id="vinylPill" class="pill">VINYL: unknown</div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>1) Connect to Raspberry Pi (BLE via Bluefy)</h2>
+      <div class="row">
+        <div>
+          <b>Bluetooth</b><br/>
+          <small>Use Bluefy on iOS for Web Bluetooth.</small>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="bleConnectBtn">Connect</button>
+          <button id="bleDisconnectBtn" disabled>Disconnect</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <b>Status</b><br/>
+          <small>Polls STATUS and updates VINYL pill.</small>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="statusBtn" disabled>STATUS</button>
+          <button id="startPollBtn" disabled>Start Poll</button>
+          <button id="stopPollBtn" disabled>Stop Poll</button>
+        </div>
+      </div>
+
+      <div class="mono" id="bleLog" style="white-space:pre-wrap;"></div>
+    </section>
+
+    <section class="card">
+      <h2>2) Spotify Login + Search (≤ 10 min)</h2>
+      <div class="row">
+        <div>
+          <b>Spotify</b><br/>
+          <small>You must set your Client ID in <span class="mono">app.js</span>.</small>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="spotifyLoginBtn">Login</button>
+          <button id="spotifyLogoutBtn">Logout</button>
+        </div>
+      </div>
+
+      <div id="me" class="muted"></div>
+
+      <div class="row">
+        <input id="searchBox" type="text" placeholder="Search tracks…" />
+        <button id="searchBtn">Search</button>
+      </div>
+
+      <div class="results" id="results"></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>3) Crate Builder</h2>
+    <div class="row">
+      <div>
+        <b>Selected Spotify tracks</b><br/>
+        <small>Tracks over 10 minutes are disabled.</small>
+      </div>
+      <div>
+        <button id="clearSelectedBtn">Clear</button>
+      </div>
+    </div>
+
+    <ol id="selected"></ol>
+
+    <div class="row">
+      <input id="crateName" type="text" placeholder="Crate name" />
+      <button id="saveCrateBtn">Save Crate</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>4) Upload audio files to Pi (WAV/MP3 from your phone)</h2>
+    <div class="row">
+      <div>
+        <b>Choose files</b><br/>
+        <small>These get sent to the Pi using UPLOAD_BEGIN name size + raw bytes.</small>
+      </div>
+      <input id="filePicker" type="file" multiple />
+    </div>
+    <div class="row">
+      <div id="uploadProgress" class="muted"></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="uploadBtn" disabled>Upload</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>5) Library on Pi (LIST / PLAY / STOP / DELETE)</h2>
+    <div class="row">
+      <div>
+        <b>Pi tracks</b><br/>
+        <small>Uses dvs_core unix commands via BLE bridge.</small>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="listBtn" disabled>LIST</button>
+        <button id="stopBtn" disabled>STOP</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <select id="piTrackSelect" style="width:min(520px,100%);" disabled></select>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="playBtn" disabled>PLAY</button>
+        <button id="deleteBtn" disabled>DELETE</button>
+      </div>
+    </div>
+
+    <div class="mono" id="piListBox" style="white-space:pre-wrap;"></div>
+  </section>
+
+  <section class="card">
+    <h2>6) Crates (saved on phone)</h2>
+    <div class="row">
+      <div>
+        <b>Your crates</b><br/>
+        <small>Stored in localStorage on your phone.</small>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="refreshCratesBtn">Refresh</button>
+      </div>
+    </div>
+    <ul id="crates"></ul>
+  </section>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
