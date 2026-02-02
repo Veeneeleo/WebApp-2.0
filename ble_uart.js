@@ -1,5 +1,5 @@
 // ble_uart.js
-// Nordic UART UUIDs (common BLE "UART" service)
+// Nordic UART UUIDs (common BLE "UART" service) renamed
 const UART_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 const UART_RX_UUID      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // write
 const UART_TX_UUID      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // notify
