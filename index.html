@@ -22,6 +22,7 @@
     .btnRow { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
     .chip { display:inline-block; padding:2px 8px; border-radius:999px; background:#f3f3f3; font-size:12px; }
     .danger { border-color:#f3b3b3; }
+    .hint { margin-top:6px; }
   </style>
 </head>
 <body>
@@ -67,7 +68,7 @@
       <div class="row">
         <div>
           <b>Spotify</b><br/>
-          <small>Search auto-runs while typing. Tracks &gt; 10 min are disabled.</small>
+          <small>Auto-search while typing. Tracks &gt; 10 min are disabled.</small>
         </div>
         <div class="btnRow">
           <button id="spotifyLoginBtn">Login</button>
@@ -80,7 +81,12 @@
       <div class="row" style="border-bottom:none;">
         <div style="width:100%;">
           <input id="searchBox" type="text" placeholder="Type to search tracks…" />
-          <div class="muted"><small id="searchHint"></small></div>
+          <div class="muted hint">
+            <small id="searchHint"></small>
+          </div>
+          <div class="muted hint">
+            <small><b>Crate cap:</b> total ≤ 10:00. Current crate: <span id="crateDurLabel">0:00</span></small>
+          </div>
         </div>
       </div>
 
@@ -94,7 +100,7 @@
     <div class="row">
       <div>
         <b>Selected tracks</b> <span class="chip" id="selectedCount">0</span><br/>
-        <small>Saved on your phone (localStorage). You can send the crate to the Pi via BLE (metadata).</small>
+        <small>Crate duration must stay ≤ 10:00 total.</small>
       </div>
       <div class="btnRow">
         <button id="clearSelectedBtn">Clear</button>
@@ -132,7 +138,7 @@
 const SPOTIFY_CLIENT_ID = "81cff1fc219b442abfb47d9a3bba8960";
 const REDIRECT_URI = location.origin + location.pathname;
 const SCOPES = ["user-read-email"];
-const MAX_MS = 10 * 60 * 1000;
+const CRATE_MAX_MS = 10 * 60 * 1000;   // <= 10 minutes TOTAL
 /* ================================================================ */
 
 /* ======================== BLE Nordic UART UUIDs ======================== */
@@ -143,7 +149,7 @@ const UART_TX_UUID      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // notify
 
 const $ = (id) => document.getElementById(id);
 
-function logBle(msg) { $("bleLog").textContent = msg + "\\n" + $("bleLog").textContent; }
+function logBle(msg) { $("bleLog").textContent = msg + "\n" + $("bleLog").textContent; }
 function setVinylPill({ ready, lock }) {
   const pill = $("vinylPill");
   if (ready) { pill.className="pill good"; pill.textContent="VINYL: READY"; }
@@ -153,7 +159,7 @@ function setVinylPill({ ready, lock }) {
 function enc(str){ return new TextEncoder().encode(str); }
 
 /* ======================== Local crate storage ======================== */
-const LS_KEY = "dvs_crates_v2";
+const LS_KEY = "dvs_crates_v3";
 function loadCrates(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; } }
 function saveCrates(crates){ localStorage.setItem(LS_KEY, JSON.stringify(crates)); }
 /* ================================================================ */
@@ -177,7 +183,7 @@ function setBleUi(connected) {
 
 async function bleWriteLine(line) {
   if (!ble.connected) throw new Error("BLE not connected");
-  if (!line.endsWith("\\n")) line += "\\n";
+  if (!line.endsWith("\n")) line += "\n";
   const data = enc(line);
   if (ble.rx.writeValueWithoutResponse) await ble.rx.writeValueWithoutResponse(data);
   else await ble.rx.writeValue(data);
@@ -186,7 +192,7 @@ async function bleWriteLine(line) {
 function onBleText(text) {
   ble.notifyBuf += text;
   let idx;
-  while ((idx = ble.notifyBuf.indexOf("\\n")) >= 0) {
+  while ((idx = ble.notifyBuf.indexOf("\n")) >= 0) {
     const line = ble.notifyBuf.slice(0, idx).trim();
     ble.notifyBuf = ble.notifyBuf.slice(idx + 1);
     if (!line) continue;
@@ -223,6 +229,7 @@ async function bleConnect() {
 
   ble.connected = true;
   setBleUi(true);
+  refreshCrates(); // re-render so "Send to Pi" enables
   logBle("BLE connected. Tap STATUS.");
 }
 
@@ -231,6 +238,7 @@ async function bleDisconnect() {
   try { if (ble.device?.gatt?.connected) ble.device.gatt.disconnect(); } catch {}
   ble.connected = false;
   setBleUi(false);
+  refreshCrates();
   logBle("BLE disconnected.");
 }
 
@@ -254,7 +262,7 @@ function stopPoll() {
 /* ======================== Spotify PKCE ======================== */
 function base64urlencode(a) {
   return btoa(String.fromCharCode(...new Uint8Array(a)))
-    .replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/, "");
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 async function sha256(plain) {
   return crypto.subtle.digest("SHA-256", new TextEncoder().encode(plain));
@@ -313,7 +321,7 @@ async function exchangeCodeForToken(code) {
 function spotifyLogout() {
   localStorage.removeItem("spotify_token");
   $("me").textContent = "";
-  $("results").innerHTML = "";
+  clearResults();
   $("searchHint").textContent = "";
   alert("Logged out.");
 }
@@ -335,8 +343,9 @@ async function loadMe() {
 }
 /* ================================================================ */
 
-/* ======================== Auto search + playlist builder ======================== */
+/* ======================== Auto search + crate cap + hide results ======================== */
 const selected = []; // current in-progress crate
+let lastSearchItems = []; // keep items so we can re-render button state
 
 function fmtDur(ms){
   const s = Math.round(ms/1000);
@@ -344,9 +353,28 @@ function fmtDur(ms){
   const r = s % 60;
   return `${m}:${String(r).padStart(2,'0')}`;
 }
+function crateTotalMs(){
+  return selected.reduce((acc, t) => acc + (t.duration_ms || 0), 0);
+}
+function updateCrateDurLabel(){
+  $("crateDurLabel").textContent = fmtDur(crateTotalMs());
+}
+
+function isAlreadySelected(trackId){
+  return selected.some(t => t.id === trackId);
+}
+
+function canAddTrack(track){
+  if (!track) return false;
+  if (track.duration_ms > CRATE_MAX_MS) return false; // a single track can't exceed cap
+  const nextTotal = crateTotalMs() + track.duration_ms;
+  return nextTotal <= CRATE_MAX_MS;
+}
 
 function renderSelected(){
   $("selectedCount").textContent = String(selected.length);
+  updateCrateDurLabel();
+
   const ol = $("selected");
   ol.innerHTML = "";
   selected.forEach((t, idx) => {
@@ -368,49 +396,67 @@ function renderSelected(){
       if (idx === 0) return;
       const tmp = selected[idx-1]; selected[idx-1] = selected[idx]; selected[idx] = tmp;
       renderSelected();
+      renderResults(lastSearchItems);
     };
     li.querySelector('[data-act="down"]').onclick = () => {
       if (idx === selected.length-1) return;
       const tmp = selected[idx+1]; selected[idx+1] = selected[idx]; selected[idx] = tmp;
       renderSelected();
+      renderResults(lastSearchItems);
     };
     li.querySelector('[data-act="remove"]').onclick = () => {
       selected.splice(idx, 1);
       renderSelected();
+      renderResults(lastSearchItems);
     };
     ol.appendChild(li);
   });
 }
 
-function isAlreadySelected(trackId){
-  return selected.some(t => t.id === trackId);
+function clearResults(){
+  lastSearchItems = [];
+  $("results").innerHTML = "";
 }
 
 function renderResults(items){
+  lastSearchItems = items || [];
   const root = $("results");
   root.innerHTML = "";
+  if (!items || !items.length) return;
+
+  const total = crateTotalMs();
 
   items.forEach((t) => {
-    const tooLong = t.duration_ms > MAX_MS;
+    const tooLong = t.duration_ms > CRATE_MAX_MS;
     const already = isAlreadySelected(t.id);
+    const wouldExceed = !already && (total + t.duration_ms > CRATE_MAX_MS);
 
     const row = document.createElement("div");
     row.className = "row";
     row.innerHTML = `
       <div style="max-width:70%;">
         <b>${t.name}</b> — ${t.artist}<br/>
-        <small>${fmtDur(t.duration_ms)} ${tooLong ? "(too long)" : ""}</small>
+        <small>${fmtDur(t.duration_ms)}
+          ${tooLong ? "(too long)" : ""}
+          ${wouldExceed ? "(crate full)" : ""}
+        </small>
       </div>
       <div class="btnRow">
-        <button ${tooLong || already ? "disabled" : ""}>${already ? "Added" : "Add"}</button>
+        <button ${tooLong || already || wouldExceed ? "disabled" : ""}>
+          ${already ? "Added" : (wouldExceed ? "Full" : "Add")}
+        </button>
       </div>
     `;
+
     row.querySelector("button").onclick = () => {
       if (tooLong) return;
-      if (isAlreadySelected(t.id)) return;
+      if (already) return;
+      if (!canAddTrack(t)) {
+        alert("Crate limit is 10:00 total. Remove something or pick a shorter track.");
+        return;
+      }
       selected.push(t);
       renderSelected();
-      // update button state
       renderResults(items);
     };
 
@@ -420,16 +466,18 @@ function renderResults(items){
 
 let searchTimer = null;
 let lastQuery = "";
+let blurHideTimer = null;
 
 async function doSearchAuto(q){
   if (!spotifyToken()) {
     $("searchHint").textContent = "Login to Spotify to search.";
+    clearResults();
     return;
   }
   q = q.trim();
   if (q.length < 2) {
-    $("results").innerHTML = "";
     $("searchHint").textContent = "Type at least 2 characters.";
+    clearResults();
     return;
   }
   if (q === lastQuery) return;
@@ -445,7 +493,7 @@ async function doSearchAuto(q){
       artist: tr.artists?.[0]?.name ?? "Unknown",
       duration_ms: tr.duration_ms,
     }));
-    $("searchHint").textContent = `Showing results for: "${q}"`;
+    $("searchHint").textContent = `Results for: "${q}" (tap outside to hide)`;
     renderResults(items);
   } catch (e) {
     $("searchHint").textContent = "Search failed (check login).";
@@ -456,7 +504,26 @@ async function doSearchAuto(q){
 function onSearchInput(){
   const q = $("searchBox").value;
   if (searchTimer) clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => doSearchAuto(q), 250); // debounce
+  searchTimer = setTimeout(() => doSearchAuto(q), 250);
+}
+
+/* Hide results when leaving search bar, but allow tapping results */
+function onSearchBlur(){
+  // Delay so a tap on a result button can still register
+  if (blurHideTimer) clearTimeout(blurHideTimer);
+  blurHideTimer = setTimeout(() => {
+    clearResults();
+    $("searchHint").textContent = "";
+  }, 200);
+}
+
+/* If user focuses back, cancel the hide */
+function onSearchFocus(){
+  if (blurHideTimer) clearTimeout(blurHideTimer);
+  blurHideTimer = null;
+  if (spotifyToken()) {
+    $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
+  }
 }
 
 function saveCrate(){
@@ -464,11 +531,19 @@ function saveCrate(){
   if (!name) return alert("Enter a crate name.");
   if (!selected.length) return alert("Add some tracks first.");
 
+  // Enforce cap again on save (just in case)
+  const total = crateTotalMs();
+  if (total > CRATE_MAX_MS) {
+    alert("Crate total exceeds 10:00. Remove tracks until it's under 10:00.");
+    return;
+  }
+
   const crates = loadCrates();
   crates.unshift({
     id: crypto.randomUUID(),
     name,
     tracks: [...selected],
+    total_ms: total,
     createdAt: Date.now(),
   });
   saveCrates(crates);
@@ -490,7 +565,9 @@ function refreshCrates(){
     li.className = "row";
     li.innerHTML = `
       <div style="max-width:70%;">
-        <b>${c.name}</b> <span class="chip">${c.tracks.length} tracks</span><br/>
+        <b>${c.name}</b>
+        <span class="chip">${c.tracks.length} tracks</span>
+        <span class="chip">${fmtDur(c.total_ms || c.tracks.reduce((a,t)=>a+(t.duration_ms||0),0))}</span><br/>
         <small>${new Date(c.createdAt).toLocaleString()}</small>
       </div>
       <div class="btnRow">
@@ -502,8 +579,8 @@ function refreshCrates(){
 
     li.querySelector('[data-act="send"]').onclick = async () => {
       if (!ble.connected) return alert("Connect BLE first.");
-      // Metadata only: your Pi bridge can store/ignore.
       await bleWriteLine(`CRATE_BEGIN ${c.name}`);
+      await bleWriteLine(`CRATE_TOTAL_MS ${c.total_ms || 0}`);
       for (const t of c.tracks) {
         await bleWriteLine(`CRATE_TRACK ${t.name} | ${t.artist} | ${t.duration_ms} | ${t.uri}`);
       }
@@ -543,10 +620,16 @@ $("spotifyLoginBtn").onclick = () => spotifyLogin().catch(e => alert("Spotify lo
 $("spotifyLogoutBtn").onclick = () => spotifyLogout();
 
 $("searchBox").addEventListener("input", onSearchInput);
+$("searchBox").addEventListener("blur", onSearchBlur);
+$("searchBox").addEventListener("focus", onSearchFocus);
 
 $("saveCrateBtn").onclick = () => saveCrate();
 $("refreshCratesBtn").onclick = () => refreshCrates();
-$("clearSelectedBtn").onclick = () => { selected.length = 0; renderSelected(); };
+$("clearSelectedBtn").onclick = () => {
+  selected.length = 0;
+  renderSelected();
+  renderResults(lastSearchItems);
+};
 /* ================================================================ */
 
 /* ======================== Boot ======================== */
@@ -566,6 +649,9 @@ refreshCrates();
   }
   if (spotifyToken()) {
     try { await loadMe(); } catch {}
+    $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
+  } else {
+    $("searchHint").textContent = "Login to Spotify to search.";
   }
 })();
 </script>
