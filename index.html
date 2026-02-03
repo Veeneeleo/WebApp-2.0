@@ -373,6 +373,14 @@ async function bleConnect() {
     filters: [{ services: [UART_SERVICE_UUID] }],
   });
 
+  ble.device.addEventListener("gattserverdisconnected", () => {
+  logBle("GATT disconnected (phone or device dropped connection).");
+  ble.connected = false;
+  setBleUi(false);
+  refreshCrates();
+});
+
+
   ble.server = await ble.device.gatt.connect();
   const svc = await ble.server.getPrimaryService(UART_SERVICE_UUID);
   ble.rx = await svc.getCharacteristic(UART_RX_UUID);
