@@ -123,19 +123,6 @@
     <section class="card">
       <h2>3) YouTube Music Login + Search</h2>
 
-      <div class="row">
-        <div>
-          <b>YouTube Music</b><br/>
-          <small>Auto-search while typing. Tracks &gt; 10 min are disabled.</small>
-        </div>
-        <div class="btnRow">
-          <button id="youtubeLoginBtn">Login</button>
-          <button id="youtubeLogoutBtn">Logout</button>
-        </div>
-      </div>
-
-      <div id="me" class="muted"></div>
-
       <div class="row" style="border-bottom:none;">
         <div style="width:100%;">
           <input id="searchBox" type="text" placeholder="Type to search tracks…" class="w520" />
@@ -209,10 +196,7 @@
 
 <script>
 /* ======================== CHANGE ME (YouTube) ======================== */
-const YOUTUBE_CLIENT_ID = "897838117455-l2jmlqqj254vdc62h0l9rib6o41vibmu.apps.googleusercontent.com";   // <- your Google OAuth Client ID
-const REDIRECT_URI = "https://veeneeleo.github.io/WebApp-2.0/";        // <- set EXACT redirect (include trailing slash if used)
-const YOUTUBE_API_KEY = "AIzaSyAcahPuv_d4f1GS3PkA2HBVfE6TryHeeMM";  // <- your YouTube Data API v3 key
-const SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"];
+const YOUTUBE_API_KEY = "YOUR_YOUTUBE_API_KEY";  // <- your YouTube Data API v3 key
 const CRATE_MAX_MS = 10 * 60 * 1000;     // <= 10 minutes TOTAL
 /* ================================================================ */
 
@@ -502,77 +486,27 @@ async function wifiOff(){
 }
 /* ================================================================ */
 
-/* ======================== YouTube OAuth 2.0 ======================== */
-function randomString(len = 64) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let s = "";
-  for (let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
-  return s;
-}
-
-function youtubeToken(){ return localStorage.getItem("youtube_token"); }
-
-async function youtubeLogin(){
-  if (YOUTUBE_CLIENT_ID.includes("YOUR_") || !YOUTUBE_CLIENT_ID.trim()) {
-    alert("Set YOUTUBE_CLIENT_ID first (from Google Cloud Console).");
-    return;
+/* ======================== YouTube API (No Auth Required) ======================== */
+async function youtubeSearch(query){
+  if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.includes("YOUR_")) {
+    throw new Error("Set YOUTUBE_API_KEY first");
   }
-  if (REDIRECT_URI === "CHANGE_ME" || !REDIRECT_URI.trim()) {
-    alert("Set REDIRECT_URI first (must match Google Cloud Console exactly).");
-    return;
-  }
-
-  const state = randomString(32);
-  sessionStorage.setItem("oauth_state", state);
-
-  const args = new URLSearchParams({
-    client_id: YOUTUBE_CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    response_type: "token",
-    scope: SCOPES.join(" "),
-    state: state,
-  });
-
-  location.href = `https://accounts.google.com/o/oauth2/v2/auth?${args.toString()}`;
-}
-
-function parseHashFragment(){
-  const hash = location.hash.substring(1);
-  const params = new URLSearchParams(hash);
-  return {
-    access_token: params.get("access_token"),
-    state: params.get("state"),
-  };
-}
-
-function youtubeLogout(){
-  localStorage.removeItem("youtube_token");
-  sessionStorage.removeItem("oauth_state");
-  $("me").textContent = "";
-  clearResults();
-  $("searchHint").textContent = "";
-  alert("Logged out.");
-}
-
-async function youtubeGET(path){
-  const token = youtubeToken();
-  if (!token) throw new Error("Not logged in");
   
-  const url = `https://www.googleapis.com/youtube/v3${path}`;
-  const separator = url.includes('?') ? '&' : '?';
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&videoCategoryId=10&q=${encodeURIComponent(query + " music")}&key=${YOUTUBE_API_KEY}`;
   
-  const r = await fetch(`${url}${separator}key=${YOUTUBE_API_KEY}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  
+  const r = await fetch(url);
   const data = await r.json();
   if (!r.ok) throw new Error(JSON.stringify(data));
   return data;
 }
 
-async function loadMe(){
-  // YouTube doesn't have a simple "me" endpoint, so we'll just confirm the token works
-  $("me").textContent = `Logged in to YouTube Music`;
+async function youtubeGetVideoDetails(videoIds){
+  const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
+  
+  const r = await fetch(url);
+  const data = await r.json();
+  if (!r.ok) throw new Error(JSON.stringify(data));
+  return data;
 }
 /* ================================================================ */
 
@@ -695,11 +629,6 @@ function renderResults(items){
 }
 
 async function doSearchAuto(q){
-  if(!youtubeToken()){
-    $("searchHint").textContent = "Login to YouTube Music to search.";
-    clearResults();
-    return;
-  }
   q = q.trim();
   if(q.length < 2){
     $("searchHint").textContent = "Type at least 2 characters.";
@@ -712,7 +641,7 @@ async function doSearchAuto(q){
   $("searchHint").textContent = "Searching…";
   try{
     // Search for videos
-    const searchData = await youtubeGET(`/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(q + " music")}&videoCategoryId=10`);
+    const searchData = await youtubeSearch(q);
     
     if (!searchData.items || searchData.items.length === 0) {
       $("searchHint").textContent = `No results for: "${q}"`;
@@ -722,7 +651,7 @@ async function doSearchAuto(q){
 
     // Get video details including duration
     const videoIds = searchData.items.map(item => item.id.videoId).join(',');
-    const detailsData = await youtubeGET(`/videos?part=contentDetails,snippet&id=${videoIds}`);
+    const detailsData = await youtubeGetVideoDetails(videoIds);
     
     const items = detailsData.items.map(video => ({
       id: video.id,
@@ -735,7 +664,7 @@ async function doSearchAuto(q){
     $("searchHint").textContent = `Results for: "${q}" (tap outside to hide)`;
     renderResults(items);
   } catch(e){
-    $("searchHint").textContent = "Search failed (check login and API key).";
+    $("searchHint").textContent = "Search failed (check API key).";
     console.error(e);
   }
 }
@@ -755,7 +684,7 @@ function onSearchBlur(){
 function onSearchFocus(){
   if(blurHideTimer) clearTimeout(blurHideTimer);
   blurHideTimer = null;
-  if(youtubeToken()) $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
+  $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
 }
 
 function saveCrate(){
@@ -860,9 +789,6 @@ $("wifiJoinBtn").onclick = ()=> wifiJoin().catch(e=> safeAlertBleError(e));
 $("wifiStatusBtn").onclick = ()=> wifiStatus().catch(e=> safeAlertBleError(e));
 $("wifiOffBtn").onclick = ()=> wifiOff().catch(e=> safeAlertBleError(e));
 
-$("youtubeLoginBtn").onclick = ()=> youtubeLogin().catch(e=> alert("YouTube login error: "+(e?.message||e)));
-$("youtubeLogoutBtn").onclick = ()=> youtubeLogout();
-
 $("searchBox").addEventListener("input", onSearchInput);
 $("searchBox").addEventListener("blur", onSearchBlur);
 $("searchBox").addEventListener("focus", onSearchFocus);
@@ -886,27 +812,7 @@ refreshCrates();
   $("env").textContent =
     `secureContext=${window.isSecureContext} | navigator.bluetooth=${!!navigator.bluetooth} | url=${location.href}`;
 
-  // Handle OAuth callback
-  if (location.hash.includes('access_token')) {
-    const { access_token, state } = parseHashFragment();
-    const savedState = sessionStorage.getItem("oauth_state");
-    
-    if (state === savedState && access_token) {
-      localStorage.setItem("youtube_token", access_token);
-      sessionStorage.removeItem("oauth_state");
-      // Clean URL
-      history.replaceState({}, document.title, REDIRECT_URI);
-    }
-  }
-
-  (async ()=>{
-    if(youtubeToken()){
-      try { await loadMe(); } catch {}
-      $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
-    } else {
-      $("searchHint").textContent = "Login to YouTube Music to search.";
-    }
-  })();
+  $("searchHint").textContent = "Type to search YouTube Music (results auto-hide when you tap outside).";
 })();
 </script>
 </body>
