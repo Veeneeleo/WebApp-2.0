@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>DVS Crates</title>
+  <title>DVS Crates - YouTube Music</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 16px; }
@@ -31,7 +31,7 @@
 </head>
 <body>
   <header>
-    <h1>DVS Crates</h1>
+    <h1>DVS Crates - YouTube Music</h1>
     <div id="vinylPill" class="pill">VINYL: unknown</div>
   </header>
 
@@ -53,7 +53,7 @@
       <div class="row">
         <div>
           <b>Connection mode</b><br/>
-          <small>If your Pi doesn’t show in the picker, switch to Name mode.</small>
+          <small>If your Pi doesn't show in the picker, switch to Name mode.</small>
         </div>
         <div class="btnRow">
           <select id="bleMode">
@@ -85,7 +85,7 @@
       <div class="row">
         <div>
           <b>Scan + Join</b><br/>
-          <small>Only needed for SpotDL downloads. Turn Wi-Fi off during play if you want.</small>
+          <small>Only needed for yt-dlp downloads. Turn Wi-Fi off during play if you want.</small>
         </div>
         <div class="btnRow">
           <button id="wifiScanBtn" disabled>Scan</button>
@@ -121,16 +121,16 @@
 
   <div class="grid">
     <section class="card">
-      <h2>3) Spotify Login + Search</h2>
+      <h2>3) YouTube Music Login + Search</h2>
 
       <div class="row">
         <div>
-          <b>Spotify</b><br/>
+          <b>YouTube Music</b><br/>
           <small>Auto-search while typing. Tracks &gt; 10 min are disabled.</small>
         </div>
         <div class="btnRow">
-          <button id="spotifyLoginBtn">Login</button>
-          <button id="spotifyLogoutBtn">Logout</button>
+          <button id="youtubeLoginBtn">Login</button>
+          <button id="youtubeLogoutBtn">Logout</button>
         </div>
       </div>
 
@@ -150,7 +150,7 @@
     </section>
 
     <section class="card">
-      <h2>4) Download progress (SpotDL on Pi)</h2>
+      <h2>4) Download progress (yt-dlp on Pi)</h2>
 
       <div class="row" id="dlRow" style="display:none; border-bottom:none;">
         <div style="width:100%;">
@@ -208,10 +208,11 @@
   </section>
 
 <script>
-/* ======================== CHANGE ME (Spotify) ======================== */
-const SPOTIFY_CLIENT_ID = "81cff1fc219b442abfb47d9a3bba8960";   // <- your Spotify Client ID
+/* ======================== CHANGE ME (YouTube) ======================== */
+const YOUTUBE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";   // <- your Google OAuth Client ID
 const REDIRECT_URI = "https://veeneeleo.github.io/WebApp-2.0/";        // <- set EXACT redirect (include trailing slash if used)
-const SCOPES = ["user-read-email"];
+const YOUTUBE_API_KEY = "YOUR_YOUTUBE_API_KEY";  // <- your YouTube Data API v3 key
+const SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"];
 const CRATE_MAX_MS = 10 * 60 * 1000;     // <= 10 minutes TOTAL
 /* ================================================================ */
 
@@ -245,7 +246,7 @@ function setDlProgress(pct, msg){
 /* ================================================================ */
 
 /* ======================== Local crate storage ======================== */
-const LS_KEY = "dvs_crates_v5";
+const LS_KEY = "dvs_crates_youtube_v1";
 function loadCrates(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; } }
 function saveCrates(crates){ localStorage.setItem(LS_KEY, JSON.stringify(crates)); }
 /* ================================================================ */
@@ -301,7 +302,7 @@ function onBleText(text){
     else if (line.startsWith("RATE ")) ble.lastStatus.rate = parseFloat(line.slice(5)) || 0;
     else if (line === ".") setVinylPill({ ready: ble.lastStatus.ready, lock: ble.lastStatus.lock });
 
-    // SpotDL progress parsing
+    // yt-dlp progress parsing
     else if (line.startsWith("DL_PCT ")) {
       showDlUI(true);
       setDlProgress(parseInt(line.slice(7),10)||0, $("dlMsg").textContent);
@@ -501,96 +502,77 @@ async function wifiOff(){
 }
 /* ================================================================ */
 
-/* ======================== Spotify PKCE ======================== */
-function base64urlencode(a) {
-  return btoa(String.fromCharCode(...new Uint8Array(a)))
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-async function sha256(plain) {
-  return crypto.subtle.digest("SHA-256", new TextEncoder().encode(plain));
-}
+/* ======================== YouTube OAuth 2.0 ======================== */
 function randomString(len = 64) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let s = "";
   for (let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
   return s;
 }
-function spotifyToken(){ return localStorage.getItem("spotify_token"); }
 
-async function spotifyLogin(){
-  if (SPOTIFY_CLIENT_ID === "CHANGE_ME" || !SPOTIFY_CLIENT_ID.trim()) {
-    alert("Set SPOTIFY_CLIENT_ID first.");
+function youtubeToken(){ return localStorage.getItem("youtube_token"); }
+
+async function youtubeLogin(){
+  if (YOUTUBE_CLIENT_ID.includes("YOUR_") || !YOUTUBE_CLIENT_ID.trim()) {
+    alert("Set YOUTUBE_CLIENT_ID first (from Google Cloud Console).");
     return;
   }
   if (REDIRECT_URI === "CHANGE_ME" || !REDIRECT_URI.trim()) {
-    alert("Set REDIRECT_URI first (must match Spotify dashboard exactly).");
+    alert("Set REDIRECT_URI first (must match Google Cloud Console exactly).");
     return;
   }
 
-  const verifier = randomString(96);
-  const challenge = base64urlencode(await sha256(verifier));
-  // sessionStorage tends to behave better on iOS for PKCE flows
-  sessionStorage.setItem("pkce_verifier", verifier);
+  const state = randomString(32);
+  sessionStorage.setItem("oauth_state", state);
 
   const args = new URLSearchParams({
-    client_id: SPOTIFY_CLIENT_ID,
-    response_type: "code",
+    client_id: YOUTUBE_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
-    code_challenge_method: "S256",
-    code_challenge: challenge,
+    response_type: "token",
     scope: SCOPES.join(" "),
+    state: state,
   });
 
-  location.href = `https://accounts.spotify.com/authorize?${args.toString()}`;
+  location.href = `https://accounts.google.com/o/oauth2/v2/auth?${args.toString()}`;
 }
 
-async function exchangeCodeForToken(code){
-  const verifier = sessionStorage.getItem("pkce_verifier");
-  const body = new URLSearchParams({
-    client_id: SPOTIFY_CLIENT_ID,
-    grant_type: "authorization_code",
-    code,
-    redirect_uri: REDIRECT_URI,
-    code_verifier: verifier,
-  });
-
-  const r = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-
-  const data = await r.json();
-  if (!r.ok) throw new Error(JSON.stringify(data));
-  localStorage.setItem("spotify_token", data.access_token);
-  // Remove code from URL so it can't be reused
-  history.replaceState({}, document.title, REDIRECT_URI);
-  return data.access_token;
+function parseHashFragment(){
+  const hash = location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  return {
+    access_token: params.get("access_token"),
+    state: params.get("state"),
+  };
 }
 
-function spotifyLogout(){
-  localStorage.removeItem("spotify_token");
-  sessionStorage.removeItem("pkce_verifier");
+function youtubeLogout(){
+  localStorage.removeItem("youtube_token");
+  sessionStorage.removeItem("oauth_state");
   $("me").textContent = "";
   clearResults();
   $("searchHint").textContent = "";
   alert("Logged out.");
 }
 
-async function spotifyGET(path){
-  const token = spotifyToken();
+async function youtubeGET(path){
+  const token = youtubeToken();
   if (!token) throw new Error("Not logged in");
-  const r = await fetch(`https://api.spotify.com/v1${path}`, {
+  
+  const url = `https://www.googleapis.com/youtube/v3${path}`;
+  const separator = url.includes('?') ? '&' : '?';
+  
+  const r = await fetch(`${url}${separator}key=${YOUTUBE_API_KEY}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  
   const data = await r.json();
   if (!r.ok) throw new Error(JSON.stringify(data));
   return data;
 }
 
 async function loadMe(){
-  const me = await spotifyGET("/me");
-  $("me").textContent = `Logged in as: ${me.display_name || me.id}`;
+  // YouTube doesn't have a simple "me" endpoint, so we'll just confirm the token works
+  $("me").textContent = `Logged in to YouTube Music`;
 }
 /* ================================================================ */
 
@@ -607,6 +589,19 @@ function fmtDur(ms){
   const r = s % 60;
   return `${m}:${String(r).padStart(2,'0')}`;
 }
+
+function parseDuration(duration) {
+  // Parse ISO 8601 duration format (PT#M#S or PT#H#M#S)
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return 0;
+  
+  const hours = parseInt(match[1] || 0);
+  const minutes = parseInt(match[2] || 0);
+  const seconds = parseInt(match[3] || 0);
+  
+  return (hours * 3600 + minutes * 60 + seconds) * 1000;
+}
+
 function crateTotalMs(){ return selected.reduce((a,t)=>a+(t.duration_ms||0),0); }
 function updateCrateDurLabel(){ $("crateDurLabel").textContent = fmtDur(crateTotalMs()); }
 function isAlreadySelected(id){ return selected.some(t=>t.id===id); }
@@ -628,7 +623,7 @@ function renderSelected(){
     li.innerHTML = `
       <div style="max-width:70%;">
         <b>${t.name}</b> — ${t.artist}<br/>
-        <small>${fmtDur(t.duration_ms)}</small>
+        <small>${fmtDur(t.duration_ms)} | <a href="${t.url}" target="_blank">View on YouTube</a></small>
       </div>
       <div class="btnRow">
         <button data-act="up">↑</button>
@@ -700,8 +695,8 @@ function renderResults(items){
 }
 
 async function doSearchAuto(q){
-  if(!spotifyToken()){
-    $("searchHint").textContent = "Login to Spotify to search.";
+  if(!youtubeToken()){
+    $("searchHint").textContent = "Login to YouTube Music to search.";
     clearResults();
     return;
   }
@@ -716,18 +711,31 @@ async function doSearchAuto(q){
 
   $("searchHint").textContent = "Searching…";
   try{
-    const data = await spotifyGET(`/search?type=track&limit=20&q=${encodeURIComponent(q)}`);
-    const items = data.tracks.items.map(tr=>({
-      id: tr.id,
-      uri: tr.uri,
-      name: tr.name,
-      artist: tr.artists?.[0]?.name ?? "Unknown",
-      duration_ms: tr.duration_ms,
+    // Search for videos
+    const searchData = await youtubeGET(`/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(q + " music")}&videoCategoryId=10`);
+    
+    if (!searchData.items || searchData.items.length === 0) {
+      $("searchHint").textContent = `No results for: "${q}"`;
+      clearResults();
+      return;
+    }
+
+    // Get video details including duration
+    const videoIds = searchData.items.map(item => item.id.videoId).join(',');
+    const detailsData = await youtubeGET(`/videos?part=contentDetails,snippet&id=${videoIds}`);
+    
+    const items = detailsData.items.map(video => ({
+      id: video.id,
+      url: `https://www.youtube.com/watch?v=${video.id}`,
+      name: video.snippet.title,
+      artist: video.snippet.channelTitle,
+      duration_ms: parseDuration(video.contentDetails.duration),
     }));
+    
     $("searchHint").textContent = `Results for: "${q}" (tap outside to hide)`;
     renderResults(items);
   } catch(e){
-    $("searchHint").textContent = "Search failed (check login).";
+    $("searchHint").textContent = "Search failed (check login and API key).";
     console.error(e);
   }
 }
@@ -747,7 +755,7 @@ function onSearchBlur(){
 function onSearchFocus(){
   if(blurHideTimer) clearTimeout(blurHideTimer);
   blurHideTimer = null;
-  if(spotifyToken()) $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
+  if(youtubeToken()) $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
 }
 
 function saveCrate(){
@@ -808,11 +816,11 @@ function refreshCrates(){
       await bleWriteLine(`CRATE_BEGIN ${safe(c.name)}`);
       await bleWriteLine(`CRATE_TOTAL_MS ${c.total_ms || 0}`);
       for(const t of c.tracks){
-        await bleWriteLine(`CRATE_TRACK ${safe(t.id)}|${t.duration_ms||0}|${safe(t.uri)}|${safe(t.name)}|${safe(t.artist)}`);
+        await bleWriteLine(`CRATE_TRACK ${safe(t.id)}|${t.duration_ms||0}|${safe(t.url)}|${safe(t.name)}|${safe(t.artist)}`);
       }
       await bleWriteLine("CRATE_END");
 
-      setDlProgress(0, "Starting SpotDL on Pi…");
+      setDlProgress(0, "Starting yt-dlp on Pi…");
       await bleWriteLine(`DL_START ${safe(c.name)}`);
     };
 
@@ -852,8 +860,8 @@ $("wifiJoinBtn").onclick = ()=> wifiJoin().catch(e=> safeAlertBleError(e));
 $("wifiStatusBtn").onclick = ()=> wifiStatus().catch(e=> safeAlertBleError(e));
 $("wifiOffBtn").onclick = ()=> wifiOff().catch(e=> safeAlertBleError(e));
 
-$("spotifyLoginBtn").onclick = ()=> spotifyLogin().catch(e=> alert("Spotify login error: "+(e?.message||e)));
-$("spotifyLogoutBtn").onclick = ()=> spotifyLogout();
+$("youtubeLoginBtn").onclick = ()=> youtubeLogin().catch(e=> alert("YouTube login error: "+(e?.message||e)));
+$("youtubeLogoutBtn").onclick = ()=> youtubeLogout();
 
 $("searchBox").addEventListener("input", onSearchInput);
 $("searchBox").addEventListener("blur", onSearchBlur);
@@ -878,31 +886,25 @@ refreshCrates();
   $("env").textContent =
     `secureContext=${window.isSecureContext} | navigator.bluetooth=${!!navigator.bluetooth} | url=${location.href}`;
 
-  const url = new URL(location.href);
-  const code = url.searchParams.get("code");
-
-  // prevent “authorization code expired” loops
-  const usedCode = sessionStorage.getItem("spotify_used_code");
-  if(code && usedCode === code){
-    history.replaceState({}, document.title, REDIRECT_URI !== "CHANGE_ME" ? REDIRECT_URI : (location.origin + location.pathname));
+  // Handle OAuth callback
+  if (location.hash.includes('access_token')) {
+    const { access_token, state } = parseHashFragment();
+    const savedState = sessionStorage.getItem("oauth_state");
+    
+    if (state === savedState && access_token) {
+      localStorage.setItem("youtube_token", access_token);
+      sessionStorage.removeItem("oauth_state");
+      // Clean URL
+      history.replaceState({}, document.title, REDIRECT_URI);
+    }
   }
 
   (async ()=>{
-    if(code && usedCode !== code){
-      sessionStorage.setItem("spotify_used_code", code);
-      try { await exchangeCodeForToken(code); }
-      catch(e){
-        sessionStorage.removeItem("spotify_used_code");
-        sessionStorage.removeItem("pkce_verifier");
-        alert("Spotify token exchange failed. Check Redirect URI + Client ID.\n" + (e?.message || e));
-      }
-    }
-
-    if(spotifyToken()){
+    if(youtubeToken()){
       try { await loadMe(); } catch {}
       $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
     } else {
-      $("searchHint").textContent = "Login to Spotify to search.";
+      $("searchHint").textContent = "Login to YouTube Music to search.";
     }
   })();
 })();
