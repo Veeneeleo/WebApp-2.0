@@ -292,9 +292,15 @@ async function bleWriteLine(line) {
   if (!ble.connected) throw new Error("BLE not connected");
   if (!line.endsWith("\n")) line += "\n";
   const data = enc(line);
-  if (ble.rx.writeValueWithoutResponse) await ble.rx.writeValueWithoutResponse(data);
-  else await ble.rx.writeValue(data);
+
+  // Prefer reliable write
+  if (ble.rx.writeValue) {
+    await ble.rx.writeValue(data);
+  } else {
+    await ble.rx.writeValueWithoutResponse(data);
+  }
 }
+
 
 function onBleText(text) {
   ble.notifyBuf += text;
@@ -366,27 +372,44 @@ function onBleText(text) {
 }
 
 async function bleConnect() {
-  if (!window.isSecureContext) alert("Not secure context. Must be HTTPS.");
-  if (!navigator.bluetooth) alert("navigator.bluetooth not available in this browser.");
+ async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
-  ble.device = await navigator.bluetooth.requestDevice({
+async function bleConnect() {
+  if (!window.isSecureContext) throw new Error("Must be HTTPS");
+  if (!navigator.bluetooth) throw new Error("WebBluetooth not available");
+
+  logBle("Requesting device…");
+  const device = await navigator.bluetooth.requestDevice({
     filters: [{ services: [UART_SERVICE_UUID] }],
+    optionalServices: [UART_SERVICE_UUID],
+  });
+  ble.device = device;
+
+  // Always attach disconnect handler
+  ble.device.addEventListener("gattserverdisconnected", () => {
+    logBle("GATT disconnected.");
+    ble.connected = false;
+    setBleUi(false);
+    refreshCrates();
   });
 
-  ble.device.addEventListener("gattserverdisconnected", () => {
-  logBle("GATT disconnected (phone or device dropped connection).");
-  ble.connected = false;
-  setBleUi(false);
-  refreshCrates();
-});
-
-
+  logBle("Connecting GATT…");
+  await sleep(250); // IMPORTANT for iOS/Bluefy stability
   ble.server = await ble.device.gatt.connect();
+
+  logBle("Getting UART service…");
+  await sleep(150);
   const svc = await ble.server.getPrimaryService(UART_SERVICE_UUID);
+
+  logBle("Getting characteristics…");
+  await sleep(150);
   ble.rx = await svc.getCharacteristic(UART_RX_UUID);
   ble.tx = await svc.getCharacteristic(UART_TX_UUID);
 
+  logBle("Starting notifications…");
+  await sleep(150);
   await ble.tx.startNotifications();
+
   ble.tx.addEventListener("characteristicvaluechanged", (ev) => {
     const v = ev.target.value;
     const bytes = new Uint8Array(v.buffer);
@@ -396,7 +419,9 @@ async function bleConnect() {
   ble.connected = true;
   setBleUi(true);
   refreshCrates();
-  logBle("BLE connected. Tap STATUS.");
+  logBle("BLE connected.");
+}
+
 }
 
 async function bleDisconnect() {
