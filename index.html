@@ -800,7 +800,17 @@ async function wifiOff(){
 /* ================================================================ */
 
 /* ======================== Wire UI ======================== */
-$("bleConnectBtn").onclick = () => bleConnect().catch(e => alert("BLE connect error: " + (e?.message || e)));
+$("bleConnectBtn").onclick = async () => {
+  try {
+    await bleConnect();
+  } catch (e) {
+    console.error("BLE connect error:", e);
+    alert("BLE connect error:\n" +
+      "name=" + (e?.name || "n/a") + "\n" +
+      "message=" + (e?.message || String(e)) + "\n" +
+      "code=" + (e?.code ?? "n/a"));
+  }
+};
 $("bleDisconnectBtn").onclick = () => bleDisconnect();
 
 $("statusBtn").onclick = () => statusOnce().catch(e => alert("STATUS error: " + (e?.message || e)));
