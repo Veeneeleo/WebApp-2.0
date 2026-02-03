@@ -2,253 +2,989 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>DVS Crates - YouTube Music</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Veeneeleo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 16px; }
-    header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-    .pill { padding:6px 10px; border-radius:999px; background:#eee; }
-    .good{ background:#d6ffe0; } .warn{ background:#fff2c9; } .bad{ background:#ffd6d6; }
-    .card { border:1px solid #ddd; border-radius:12px; padding:12px; margin:12px 0; }
-    .row { display:flex; gap:10px; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid #eee; }
-    button,input,select { padding:10px 12px; border-radius:10px; border:1px solid #ccc; background:#fff; }
-    button:disabled { opacity:0.5; }
-    input[type="text"], input[type="password"] { width:min(520px,100%); }
-    small { opacity:0.7; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12px; }
-    .grid { display:grid; grid-template-columns: 1fr; gap: 10px; }
-    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
-    .muted { opacity: 0.75; }
-    .btnRow { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-    .chip { display:inline-block; padding:2px 8px; border-radius:999px; background:#f3f3f3; font-size:12px; }
-    .danger { border-color:#f3b3b3; }
-    .hint { margin-top:6px; }
-    progress { width:100%; height:18px; }
-    .tiny { font-size: 11px; }
-    .split { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .w520 { width:min(520px,100%); }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg-dark: #0a0a0f;
+      --bg-card: #16161f;
+      --bg-elevated: #1f1f2e;
+      --accent-vinyl: #ff3366;
+      --accent-neon: #00ffcc;
+      --accent-blue: #3366ff;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0b8;
+      --text-muted: #6a6a7f;
+      --border: #2a2a3f;
+      --success: #00ff88;
+      --warning: #ffaa00;
+      --danger: #ff3366;
+    }
+
+    body {
+      font-family: 'Space Mono', monospace;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      overflow-x: hidden;
+    }
+
+    /* Animated background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        linear-gradient(90deg, var(--border) 1px, transparent 1px),
+        linear-gradient(0deg, var(--border) 1px, transparent 1px);
+      background-size: 50px 50px;
+      opacity: 0.15;
+      z-index: 0;
+      animation: gridPulse 20s ease-in-out infinite;
+    }
+
+    @keyframes gridPulse {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.08; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 100%;
+      padding: 0;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
+      padding: 20px;
+      border-bottom: 2px solid var(--accent-vinyl);
+      box-shadow: 0 4px 20px rgba(255, 51, 102, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--accent-vinyl), var(--accent-neon));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+      animation: titleGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes titleGlow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.3); }
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      animation: statusPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .status-pill::before {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: dotPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes dotPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.7; }
+    }
+
+    .status-pill.ready {
+      background: rgba(0, 255, 136, 0.15);
+      border: 2px solid var(--success);
+      color: var(--success);
+    }
+
+    .status-pill.ready::before {
+      background: var(--success);
+      box-shadow: 0 0 10px var(--success);
+    }
+
+    .status-pill.locked {
+      background: rgba(255, 170, 0, 0.15);
+      border: 2px solid var(--warning);
+      color: var(--warning);
+    }
+
+    .status-pill.locked::before {
+      background: var(--warning);
+      box-shadow: 0 0 10px var(--warning);
+    }
+
+    .status-pill.disconnected {
+      background: rgba(255, 51, 102, 0.15);
+      border: 2px solid var(--danger);
+      color: var(--danger);
+    }
+
+    .status-pill.disconnected::before {
+      background: var(--danger);
+      box-shadow: 0 0 10px var(--danger);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      animation: cardSlideIn 0.5s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @keyframes cardSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-vinyl), var(--accent-neon), var(--accent-blue));
+      opacity: 0.5;
+    }
+
+    .card h2 {
+      font-family: 'Orbitron', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent-neon);
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Buttons */
+    button {
+      font-family: 'Space Mono', monospace;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    button:active::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-vinyl), #ff5588);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.95);
+      box-shadow: 0 2px 8px rgba(255, 51, 102, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:active {
+      background: var(--bg-dark);
+      transform: scale(0.95);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success), #00dd77);
+      color: var(--bg-dark);
+      box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger), #ff5588);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn-row button {
+      flex: 1;
+      min-width: 100px;
+    }
+
+    /* Input fields */
+    input, select {
+      font-family: 'Space Mono', monospace;
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-dark);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.3s ease;
+      margin-top: 8px;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-neon);
+      box-shadow: 0 0 0 3px rgba(0, 255, 204, 0.1);
+    }
+
+    input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Search */
+    .search-wrapper {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      margin-top: 4px;
+    }
+
+    input[type="text"] {
+      padding-left: 45px;
+    }
+
+    .search-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+      min-height: 18px;
+    }
+
+    /* Results */
+    .results-list {
+      margin-top: 12px;
+    }
+
+    .track-item {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+      animation: trackSlideIn 0.4s ease-out;
+    }
+
+    @keyframes trackSlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .track-item:active {
+      transform: scale(0.98);
+      background: var(--bg-card);
+    }
+
+    .track-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .track-name {
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .track-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .track-item button {
+      flex-shrink: 0;
+      min-width: 80px;
+      padding: 10px 16px;
+    }
+
+    .duration-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--bg-dark);
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--accent-neon);
+      font-weight: 700;
+    }
+
+    .warning-badge {
+      color: var(--warning);
+    }
+
+    /* Crate list */
+    .crate-counter {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .counter-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .counter-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent-vinyl);
+      font-family: 'Orbitron', monospace;
+    }
+
+    .selected-tracks {
+      list-style: none;
+      margin: 16px 0;
+    }
+
+    .selected-tracks li {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent-vinyl);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      animation: trackSlideIn 0.4s ease-out;
+    }
+
+    .track-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .track-controls button {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    /* Download progress */
+    .download-container {
+      background: linear-gradient(135deg, rgba(0, 255, 204, 0.1), rgba(51, 102, 255, 0.1));
+      border: 2px solid var(--accent-neon);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+      animation: downloadPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes downloadPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 204, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(0, 255, 204, 0.5); }
+    }
+
+    .download-status {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--accent-neon);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-dark);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-neon), var(--accent-blue));
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 10px var(--accent-neon);
+    }
+
+    .download-message {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Log */
+    .log-container {
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+      font-family: 'Space Mono', monospace;
+      line-height: 1.6;
+    }
+
+    .log-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .log-container::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+
+    .log-container::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    /* Collapsible sections */
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      padding: 8px 0;
+    }
+
+    .collapsible-header::after {
+      content: '▼';
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
+    }
+
+    .collapsible-header.collapsed::after {
+      transform: rotate(-90deg);
+    }
+
+    .collapsible-content {
+      max-height: 2000px;
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+
+    .collapsible-content.collapsed {
+      max-height: 0;
+      opacity: 0;
+    }
+
+    /* Saved crates */
+    .crate-list {
+      list-style: none;
+    }
+
+    .crate-list-item {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      animation: trackSlideIn 0.4s ease-out;
+    }
+
+    .crate-header {
+      margin-bottom: 12px;
+    }
+
+    .crate-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .crate-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--bg-dark);
+      color: var(--text-secondary);
+    }
+
+    .badge-tracks {
+      color: var(--accent-vinyl);
+    }
+
+    .badge-duration {
+      color: var(--accent-neon);
+    }
+
+    .crate-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .crate-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .crate-actions button {
+      flex: 1;
+      font-size: 12px;
+      padding: 10px 14px;
+    }
+
+    /* Empty states */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    /* Utility classes */
+    .hidden {
+      display: none !important;
+    }
+
+    .mt-16 {
+      margin-top: 16px;
+    }
+
+    .mb-16 {
+      margin-bottom: 16px;
+    }
+
+    /* Link styling */
+    a {
+      color: var(--accent-neon);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    a:active {
+      color: var(--accent-blue);
+    }
+
+    /* Section divider */
+    .section-number {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent-vinyl), var(--accent-neon));
+      border-radius: 50%;
+      text-align: center;
+      line-height: 28px;
+      font-weight: 900;
+      font-size: 14px;
+      color: var(--bg-dark);
+      margin-right: 8px;
+    }
+
+    /* Toast notifications */
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--bg-elevated);
+      border: 2px solid var(--accent-neon);
+      border-radius: 12px;
+      padding: 16px 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .toast.error {
+      border-color: var(--danger);
+    }
+
+    .toast.success {
+      border-color: var(--success);
+    }
+
+    /* Wi-Fi network list */
+    .network-option {
+      padding: 12px;
+      background: var(--bg-dark);
+    }
+
+    /* Better mobile spacing */
+    @media (max-width: 768px) {
+      .card {
+        margin: 12px 8px;
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .btn-row button {
+        min-width: 80px;
+        font-size: 12px;
+        padding: 10px 14px;
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>DVS Crates - YouTube Music</h1>
-    <div id="vinylPill" class="pill">VINYL: unknown</div>
-  </header>
+  <div class="container">
+    <header>
+      <h1>VEENEELEO</h1>
+      <div id="vinylPill" class="status-pill disconnected">VINYL: NO LOCK</div>
+    </header>
 
-  <div class="grid">
-    <section class="card">
-      <h2>1) Connect to Raspberry Pi (BLE)</h2>
+    <!-- BLE Connection -->
+    <div class="card">
+      <h2><span class="section-number">1</span> Bluetooth Connection</h2>
+      
+      <div class="btn-row">
+        <button id="bleConnectBtn" class="btn-primary">Connect to Pi</button>
+        <button id="bleDisconnectBtn" class="btn-danger" disabled>Disconnect</button>
+      </div>
 
-      <div class="row">
+      <div class="collapsible-header collapsed" id="bleAdvancedHeader">
+        <span style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase;">Advanced Options</span>
+      </div>
+      
+      <div class="collapsible-content collapsed" id="bleAdvancedContent">
+        <select id="bleMode">
+          <option value="uuid" selected>Filter by UART UUID</option>
+          <option value="name">Filter by Name (DVS)</option>
+        </select>
+
+        <div class="btn-row">
+          <button id="statusBtn" class="btn-secondary" disabled>Check Status</button>
+          <button id="startPollBtn" class="btn-secondary" disabled>Start Poll</button>
+          <button id="stopPollBtn" class="btn-secondary" disabled>Stop Poll</button>
+        </div>
+
+        <div class="log-container" id="bleLog"></div>
+      </div>
+    </div>
+
+    <!-- Wi-Fi -->
+    <div class="card">
+      <h2><span class="section-number">2</span> Wi-Fi Setup</h2>
+      
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">
+        Connect your Pi to Wi-Fi for downloads. You can disable Wi-Fi during playback.
+      </p>
+
+      <div class="btn-row">
+        <button id="wifiScanBtn" class="btn-secondary" disabled>Scan Networks</button>
+        <button id="wifiStatusBtn" class="btn-secondary" disabled>Check Status</button>
+        <button id="wifiOffBtn" class="btn-danger" disabled>Turn Off</button>
+      </div>
+
+      <select id="wifiSsid" disabled>
+        <option value="">(scan for networks first)</option>
+      </select>
+
+      <input id="wifiPass" type="password" placeholder="Wi-Fi password (leave blank if open)" disabled />
+
+      <div class="btn-row">
+        <button id="wifiJoinBtn" class="btn-success" disabled>Connect to Network</button>
+      </div>
+
+      <div style="margin-top: 16px; padding: 12px; background: var(--bg-elevated); border-radius: 8px; font-size: 12px;">
+        <div style="color: var(--text-secondary);">
+          Status: <span id="wifiState" style="color: var(--accent-neon);">unknown</span>
+        </div>
+        <div style="color: var(--text-secondary); margin-top: 4px;">
+          IP: <span id="wifiIp" style="color: var(--accent-neon);">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="card">
+      <h2><span class="section-number">3</span> Search Music</h2>
+      
+      <div class="search-wrapper">
+        <div class="search-icon">🔍</div>
+        <input id="searchBox" type="text" placeholder="Search for tracks on YouTube..." />
+      </div>
+      <div class="search-hint" id="searchHint">Type to search tracks</div>
+
+      <div class="crate-counter">
         <div>
-          <b>Bluetooth</b><br/>
-          <small>iOS: Bluefy + HTTPS required.</small>
+          <div class="counter-label">Crate Limit</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">10:00 max</div>
         </div>
-        <div class="btnRow">
-          <button id="bleConnectBtn">Connect</button>
-          <button id="bleDisconnectBtn" disabled>Disconnect</button>
+        <div style="margin-left: auto; text-align: right;">
+          <div class="counter-label">Current</div>
+          <div class="counter-value" id="crateDurLabel">0:00</div>
         </div>
       </div>
 
-      <div class="row">
+      <div class="results-list" id="results"></div>
+    </div>
+
+    <!-- Download Progress -->
+    <div id="dlRow" class="card hidden">
+      <h2><span class="section-number">4</span> Download Progress</h2>
+      
+      <div class="download-container">
+        <div class="download-status">Downloading: <span id="dlPct">0%</span></div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="dlProg" style="width: 0%"></div>
+        </div>
+        <div class="download-message" id="dlMsg">Starting download...</div>
+      </div>
+    </div>
+
+    <!-- Current Crate -->
+    <div class="card">
+      <h2><span class="section-number">5</span> Current Playlist</h2>
+      
+      <div class="crate-counter">
         <div>
-          <b>Connection mode</b><br/>
-          <small>If your Pi doesn't show in the picker, switch to Name mode.</small>
+          <div class="counter-label">Tracks</div>
+          <div class="counter-value" id="selectedCount">0</div>
         </div>
-        <div class="btnRow">
-          <select id="bleMode">
-            <option value="uuid" selected>Filter by UART UUID</option>
-            <option value="name">Filter by Name Prefix (DVS)</option>
-          </select>
+        <div style="margin-left: auto;">
+          <button id="clearSelectedBtn" class="btn-danger" style="padding: 8px 16px; font-size: 12px;">Clear All</button>
         </div>
       </div>
 
-      <div class="row">
-        <div>
-          <b>Status</b><br/>
-          <small>Polls STATUS from Pi → updates VINYL pill.</small>
-        </div>
-        <div class="btnRow">
-          <button id="statusBtn" disabled>STATUS</button>
-          <button id="startPollBtn" disabled>Start Poll</button>
-          <button id="stopPollBtn" disabled>Stop Poll</button>
-        </div>
+      <ol class="selected-tracks" id="selected"></ol>
+
+      <input id="crateName" type="text" placeholder="Name your crate (e.g., Friday Night Set)" />
+      
+      <input id="crateRfid" type="text" placeholder="Vinyl RFID code (optional)" style="margin-top: 12px;" />
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+        💿 Associate this crate with a physical vinyl's RFID tag
       </div>
 
-      <div class="mono" id="bleLog" style="white-space:pre-wrap; max-height:260px; overflow:auto;"></div>
-      <div class="muted"><small id="env"></small></div>
-    </section>
-
-    <section class="card">
-      <h2>2) Wi-Fi on Pi (via BLE)</h2>
-
-      <div class="row">
-        <div>
-          <b>Scan + Join</b><br/>
-          <small>Only needed for yt-dlp downloads. Turn Wi-Fi off during play if you want.</small>
-        </div>
-        <div class="btnRow">
-          <button id="wifiScanBtn" disabled>Scan</button>
-          <button id="wifiStatusBtn" disabled>Status</button>
-          <button id="wifiOffBtn" disabled>Wi-Fi Off</button>
-        </div>
+      <div class="btn-row">
+        <button id="saveCrateBtn" class="btn-success">Save Crate</button>
       </div>
+    </div>
 
-      <div class="row" style="border-bottom:none;">
-        <div style="width:100%;">
-          <div class="muted hint"><small>Networks:</small></div>
-          <select id="wifiSsid" class="w520" disabled>
-            <option value="">(scan first)</option>
-          </select>
+    <!-- Saved Crates -->
+    <div class="card">
+      <h2><span class="section-number">6</span> Your Crates</h2>
+      
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">
+        Saved locally on your device
+      </p>
 
-          <div class="hint"></div>
-          <input id="wifiPass" type="password" class="w520" placeholder="Wi-Fi password (blank if open)" disabled />
+      <button id="refreshCratesBtn" class="btn-secondary" style="width: 100%; margin-bottom: 16px;">Refresh List</button>
 
-          <div class="btnRow" style="margin-top:10px;">
-            <button id="wifiJoinBtn" disabled>Join</button>
-          </div>
-
-          <div class="muted hint">
-            <small>
-              State: <span id="wifiState">unknown</span>
-              &nbsp; | &nbsp; IP: <span id="wifiIp">-</span>
-            </small>
-          </div>
-        </div>
-      </div>
-    </section>
+      <ul class="crate-list" id="crates"></ul>
+    </div>
   </div>
 
-  <div class="grid">
-    <section class="card">
-      <h2>3) YouTube Music Login + Search</h2>
-
-      <div class="row" style="border-bottom:none;">
-        <div style="width:100%;">
-          <input id="searchBox" type="text" placeholder="Type to search tracks…" class="w520" />
-          <div class="muted hint"><small id="searchHint"></small></div>
-          <div class="muted hint">
-            <small><b>Crate cap:</b> total ≤ 10:00. Current crate: <span id="crateDurLabel">0:00</span></small>
-          </div>
-        </div>
-      </div>
-
-      <div id="results"></div>
-    </section>
-
-    <section class="card">
-      <h2>4) Download progress (yt-dlp on Pi)</h2>
-
-      <div class="row" id="dlRow" style="display:none; border-bottom:none;">
-        <div style="width:100%;">
-          <b>Downloading on Pi…</b> <span class="chip" id="dlPct">0%</span><br/>
-          <progress id="dlProg" value="0" max="100"></progress>
-          <div class="muted"><small id="dlMsg"></small></div>
-        </div>
-      </div>
-
-      <div class="muted tiny">
-        <small>
-          From Pi notifications: DL_MSG / DL_PCT / DL_DONE / DL_ERR.
-        </small>
-      </div>
-    </section>
-  </div>
-
-  <section class="card">
-    <h2>5) Current Playlist (Crate)</h2>
-
-    <div class="row">
-      <div>
-        <b>Selected tracks</b> <span class="chip" id="selectedCount">0</span><br/>
-        <small>Crate duration must stay ≤ 10:00 total.</small>
-      </div>
-      <div class="btnRow">
-        <button id="clearSelectedBtn">Clear</button>
-      </div>
-    </div>
-
-    <ol id="selected"></ol>
-
-    <div class="row" style="border-bottom:none;">
-      <input id="crateName" type="text" placeholder="Crate name (e.g., My Set 1)" class="w520" />
-      <div class="btnRow">
-        <button id="saveCrateBtn">Save Crate</button>
-      </div>
-    </div>
-  </section>
-
-  <section class="card">
-    <h2>6) Saved Crates</h2>
-
-    <div class="row">
-      <div>
-        <b>Your crates</b><br/>
-        <small>Stored in localStorage on your phone.</small>
-      </div>
-      <div class="btnRow">
-        <button id="refreshCratesBtn">Refresh</button>
-      </div>
-    </div>
-
-    <ul id="crates"></ul>
-  </section>
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
 
 <script>
 /* ======================== CHANGE ME (YouTube) ======================== */
-const YOUTUBE_API_KEY = "AIzaSyAcahPuv_d4f1GS3PkA2HBVfE6TryHeeMM";  // <- your YouTube Data API v3 key
-const CRATE_MAX_MS = 10 * 60 * 1000;     // <= 10 minutes TOTAL
+const YOUTUBE_API_KEY = "AIzaSyAcahPuv_d4f1GS3PkA2HBVfE6TryHeeMM";
+const CRATE_MAX_MS = 10 * 60 * 1000;
 /* ================================================================ */
 
 /* ======================== BLE Nordic UART UUIDs ======================== */
 const UART_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-const UART_RX_UUID      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // write
-const UART_TX_UUID      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // notify
+const UART_RX_UUID      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+const UART_TX_UUID      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 /* ================================================================ */
 
 const $ = (id) => document.getElementById(id);
 
-function logBle(msg) { $("bleLog").textContent = msg + "\n" + $("bleLog").textContent; }
-function setVinylPill({ ready, lock }) {
-  const pill = $("vinylPill");
-  if (ready) { pill.className="pill good"; pill.textContent="VINYL: READY"; }
-  else if (lock) { pill.className="pill warn"; pill.textContent="VINYL: LOCKED"; }
-  else { pill.className="pill bad"; pill.textContent="VINYL: NO LOCK"; }
+function logBle(msg) { 
+  const log = $("bleLog");
+  const entry = document.createElement('div');
+  entry.textContent = msg;
+  entry.style.animation = 'trackSlideIn 0.3s ease-out';
+  log.insertBefore(entry, log.firstChild);
 }
 
-const enc = (s)=> new TextEncoder().encode(s);
-const dec = (u8)=> new TextDecoder().decode(u8);
+function showToast(msg, type = 'info') {
+  const toast = $("toast");
+  toast.textContent = msg;
+  toast.className = `toast ${type}`;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function setVinylPill({ ready, lock }) {
+  const pill = $("vinylPill");
+  if (ready) {
+    pill.className = "status-pill ready";
+    pill.textContent = "VINYL: READY";
+  } else if (lock) {
+    pill.className = "status-pill locked";
+    pill.textContent = "VINYL: LOCKED";
+  } else {
+    pill.className = "status-pill disconnected";
+    pill.textContent = "VINYL: NO LOCK";
+  }
+}
+
+const enc = (s) => new TextEncoder().encode(s);
+const dec = (u8) => new TextDecoder().decode(u8);
 
 /* ======================== Download UI ======================== */
-function showDlUI(show){ $("dlRow").style.display = show ? "" : "none"; }
-function setDlProgress(pct, msg){
+function showDlUI(show) {
+  $("dlRow").classList.toggle('hidden', !show);
+}
+
+function setDlProgress(pct, msg) {
   pct = Math.max(0, Math.min(100, (pct|0)));
-  $("dlProg").value = pct;
+  $("dlProg").style.width = pct + "%";
   $("dlPct").textContent = pct + "%";
   $("dlMsg").textContent = msg || "";
 }
 /* ================================================================ */
 
 /* ======================== Local crate storage ======================== */
-const LS_KEY = "dvs_crates_youtube_v1";
-function loadCrates(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; } }
-function saveCrates(crates){ localStorage.setItem(LS_KEY, JSON.stringify(crates)); }
+const LS_KEY = "veeneeleo_crates_v1";
+function loadCrates() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }
+  catch { return []; }
+}
+function saveCrates(crates) {
+  localStorage.setItem(LS_KEY, JSON.stringify(crates));
+}
 /* ================================================================ */
 
 /* ======================== BLE ======================== */
 let ble = {
-  device:null,
-  server:null,
-  svc:null,
-  rx:null,
-  tx:null,
-  connected:false,
-  notifyBuf:"",
-  pollTimer:null,
-  lastStatus:{ready:false, lock:false, posMs:0, rate:1.0},
+  device: null,
+  server: null,
+  svc: null,
+  rx: null,
+  tx: null,
+  connected: false,
+  notifyBuf: "",
+  pollTimer: null,
+  lastStatus: {ready: false, lock: false, posMs: 0, rate: 1.0},
 };
 
-function setBleUi(connected){
+function setBleUi(connected) {
   $("bleConnectBtn").disabled = connected;
   $("bleDisconnectBtn").disabled = !connected;
   $("statusBtn").disabled = !connected;
@@ -263,51 +999,49 @@ function setBleUi(connected){
   $("wifiJoinBtn").disabled = !connected;
 }
 
-function safeAlertBleError(e){
+function safeAlertBleError(e) {
   console.error("BLE error:", e);
   const name = e?.name || "n/a";
   const msg = e?.message || String(e);
-  const code = (e?.code ?? "n/a");
-  alert(`BLE error:\nname=${name}\nmessage=${msg}\ncode=${code}`);
+  showToast(`BLE Error: ${msg}`, 'error');
 }
 
-function onBleText(text){
+function onBleText(text) {
   ble.notifyBuf += text;
   let idx;
-  while((idx = ble.notifyBuf.indexOf("\n")) >= 0){
+  while((idx = ble.notifyBuf.indexOf("\n")) >= 0) {
     const line = ble.notifyBuf.slice(0, idx).trim();
     ble.notifyBuf = ble.notifyBuf.slice(idx + 1);
     if(!line) continue;
 
-    // dvs_core STATUS parsing
     if (line.startsWith("READY ")) ble.lastStatus.ready = line.endsWith("1");
     else if (line.startsWith("LOCK ")) ble.lastStatus.lock = line.endsWith("1");
     else if (line.startsWith("POS_MS ")) ble.lastStatus.posMs = parseInt(line.slice(7), 10) || 0;
     else if (line.startsWith("RATE ")) ble.lastStatus.rate = parseFloat(line.slice(5)) || 0;
     else if (line === ".") setVinylPill({ ready: ble.lastStatus.ready, lock: ble.lastStatus.lock });
 
-    // yt-dlp progress parsing
     else if (line.startsWith("DL_PCT ")) {
       showDlUI(true);
       setDlProgress(parseInt(line.slice(7),10)||0, $("dlMsg").textContent);
     } else if (line.startsWith("DL_MSG ")) {
       showDlUI(true);
-      setDlProgress(parseInt($("dlProg").value,10)||0, line.slice(7));
+      setDlProgress(parseInt($("dlProg").style.width)||0, line.slice(7));
     } else if (line === "DL_DONE") {
-      setDlProgress(100, "Done.");
-      setTimeout(()=>showDlUI(false), 1500);
+      setDlProgress(100, "Download complete!");
+      showToast("Download complete!", 'success');
+      setTimeout(()=>showDlUI(false), 2000);
     } else if (line.startsWith("DL_ERR ")) {
       showDlUI(true);
-      setDlProgress(parseInt($("dlProg").value,10)||0, "Error: " + line.slice(7));
-      alert("Download failed: " + line.slice(7));
+      const err = line.slice(7);
+      setDlProgress(parseInt($("dlProg").style.width)||0, "Error: " + err);
+      showToast("Download failed: " + err, 'error');
     }
 
-    // Wi-Fi parsing
     else if (line.startsWith("WIFI_NET ")) {
       const payload = line.slice(9);
       const [ssid, sig] = payload.split("|");
       const signal = parseInt(sig||"0",10)||0;
-      if(ssid && ssid.trim()){
+      if(ssid && ssid.trim()) {
         const s = ssid.trim();
         const i = wifiNets.findIndex(x=>x.ssid===s);
         if(i>=0) wifiNets[i].signal = Math.max(wifiNets[i].signal, signal);
@@ -316,45 +1050,47 @@ function onBleText(text){
     } else if (line === "WIFI_SCAN_DONE") {
       wifiNets.sort((a,b)=>b.signal-a.signal);
       wifiRenderNets();
-      logBle("Wi-Fi scan done.");
+      logBle("Wi-Fi scan complete");
+      showToast("Found " + wifiNets.length + " networks", 'success');
     } else if (line.startsWith("WIFI_STATE ")) {
       wifiSetState(line.slice(11).trim(), $("wifiIp").textContent === "-" ? "" : $("wifiIp").textContent);
     } else if (line.startsWith("WIFI_IP ")) {
       wifiSetState($("wifiState").textContent, line.slice(8).trim());
     } else if (line.startsWith("WIFI_ERR ")) {
-      alert("Wi-Fi error: " + line.slice(9));
+      showToast("Wi-Fi error: " + line.slice(9), 'error');
     }
 
     logBle(line);
   }
 }
 
-async function bleWriteLine(line){
+async function bleWriteLine(line) {
   if(!ble.connected || !ble.rx) throw new Error("Not connected");
   if(!line.endsWith("\n")) line += "\n";
   const data = enc(line);
 
-  // iOS reliability: prefer writeValue
   if (ble.rx.writeValue) await ble.rx.writeValue(data);
   else await ble.rx.writeValueWithoutResponse(data);
 }
 
-function stopPoll(){
+function stopPoll() {
   if(ble.pollTimer) clearInterval(ble.pollTimer);
   ble.pollTimer = null;
 }
 
-async function statusOnce(){ await bleWriteLine("STATUS"); }
+async function statusOnce() {
+  await bleWriteLine("STATUS");
+}
 
-function startPoll(){
+function startPoll() {
   stopPoll();
   ble.pollTimer = setInterval(()=>{
     if(ble.connected) bleWriteLine("STATUS").catch(()=>{});
   }, 300);
-  logBle("Polling STATUS…");
+  logBle("Polling status...");
 }
 
-function cleanupBleState(){
+function cleanupBleState() {
   stopPoll();
   ble.connected = false;
   ble.server = null;
@@ -362,22 +1098,23 @@ function cleanupBleState(){
   ble.rx = null;
   ble.tx = null;
   setBleUi(false);
+  setVinylPill({ready: false, lock: false});
   refreshCrates();
 }
 
-async function bleConnect(){
+async function bleConnect() {
   if(!window.isSecureContext) throw new Error("Must be HTTPS");
   if(!navigator.bluetooth) throw new Error("WebBluetooth not available");
 
-  // prevent double-click / overlapping connects
   $("bleConnectBtn").disabled = true;
 
-  try{
-    logBle("Requesting device…");
+  try {
+    logBle("Requesting device...");
+    showToast("Opening Bluetooth picker...", 'info');
 
     const mode = $("bleMode").value;
 
-    if(mode === "name"){
+    if(mode === "name") {
       ble.device = await navigator.bluetooth.requestDevice({
         filters: [{ namePrefix: "DVS" }],
         optionalServices: [UART_SERVICE_UUID],
@@ -390,21 +1127,22 @@ async function bleConnect(){
     }
 
     ble.device.addEventListener("gattserverdisconnected", ()=>{
-      logBle("GATT disconnected.");
+      logBle("GATT disconnected");
+      showToast("Bluetooth disconnected", 'error');
       cleanupBleState();
     });
 
-    logBle("Connecting GATT…");
+    logBle("Connecting to GATT...");
     ble.server = await ble.device.gatt.connect();
 
-    logBle("Getting UART service…");
+    logBle("Getting UART service...");
     ble.svc = await ble.server.getPrimaryService(UART_SERVICE_UUID);
 
-    logBle("Getting characteristics…");
+    logBle("Getting characteristics...");
     ble.rx = await ble.svc.getCharacteristic(UART_RX_UUID);
     ble.tx = await ble.svc.getCharacteristic(UART_TX_UUID);
 
-    logBle("Enabling notifications…");
+    logBle("Enabling notifications...");
     await ble.tx.startNotifications();
 
     ble.tx.addEventListener("characteristicvaluechanged", (ev)=>{
@@ -413,33 +1151,34 @@ async function bleConnect(){
       onBleText(dec(bytes));
     });
 
-    // NOW we are truly connected
     ble.connected = true;
     setBleUi(true);
     refreshCrates();
-    logBle("BLE connected ✅");
+    logBle("✅ BLE connected");
+    showToast("Connected to Pi!", 'success');
   } finally {
-    // enable connect button only if still disconnected
     $("bleConnectBtn").disabled = ble.connected;
   }
 }
 
-async function bleDisconnect(){
-  try{
+async function bleDisconnect() {
+  try {
     stopPoll();
     if(ble.device?.gatt?.connected) ble.device.gatt.disconnect();
   } catch {}
   cleanupBleState();
-  logBle("BLE disconnected.");
+  logBle("BLE disconnected");
+  showToast("Disconnected", 'info');
 }
 /* ================================================================ */
 
 /* ======================== Wi-Fi UI ======================== */
 let wifiNets = [];
-function wifiRenderNets(){
+
+function wifiRenderNets() {
   const sel = $("wifiSsid");
   sel.innerHTML = "";
-  if(!wifiNets.length){
+  if(!wifiNets.length) {
     const opt = document.createElement("option");
     opt.value = "";
     opt.textContent = "(no networks — tap Scan)";
@@ -457,37 +1196,45 @@ function wifiRenderNets(){
     sel.appendChild(opt);
   });
 }
-function wifiSetState(state, ip=""){
+
+function wifiSetState(state, ip="") {
   $("wifiState").textContent = state || "unknown";
   $("wifiIp").textContent = ip || "-";
 }
-async function wifiScan(){
-  if(!ble.connected) return alert("Connect BLE first.");
+
+async function wifiScan() {
+  if(!ble.connected) return showToast("Connect to Pi first", 'error');
   wifiNets = [];
   wifiRenderNets();
   wifiSetState("scanning","");
   await bleWriteLine("WIFI_SCAN");
+  showToast("Scanning for networks...", 'info');
 }
-async function wifiJoin(){
-  if(!ble.connected) return alert("Connect BLE first.");
+
+async function wifiJoin() {
+  if(!ble.connected) return showToast("Connect to Pi first", 'error');
   const ssid = $("wifiSsid").value;
   const pwd = $("wifiPass").value;
-  if(!ssid) return alert("Choose a network first.");
+  if(!ssid) return showToast("Choose a network first", 'error');
   wifiSetState("connecting","");
   await bleWriteLine(`WIFI_JOIN ${ssid}|${pwd}`);
+  showToast("Connecting to " + ssid + "...", 'info');
 }
-async function wifiStatus(){
-  if(!ble.connected) return alert("Connect BLE first.");
+
+async function wifiStatus() {
+  if(!ble.connected) return showToast("Connect to Pi first", 'error');
   await bleWriteLine("WIFI_STATUS");
 }
-async function wifiOff(){
-  if(!ble.connected) return alert("Connect BLE first.");
+
+async function wifiOff() {
+  if(!ble.connected) return showToast("Connect to Pi first", 'error');
   await bleWriteLine("WIFI_OFF");
+  showToast("Turning Wi-Fi off...", 'info');
 }
 /* ================================================================ */
 
-/* ======================== YouTube API (No Auth Required) ======================== */
-async function youtubeSearch(query){
+/* ======================== YouTube API ======================== */
+async function youtubeSearch(query) {
   if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.includes("YOUR_")) {
     throw new Error("Set YOUTUBE_API_KEY first");
   }
@@ -500,7 +1247,7 @@ async function youtubeSearch(query){
   return data;
 }
 
-async function youtubeGetVideoDetails(videoIds){
+async function youtubeGetVideoDetails(videoIds) {
   const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
   
   const r = await fetch(url);
@@ -510,14 +1257,14 @@ async function youtubeGetVideoDetails(videoIds){
 }
 /* ================================================================ */
 
-/* ======================== Auto search + crate cap ======================== */
+/* ======================== Search & Crate ======================== */
 const selected = [];
 let lastSearchItems = [];
 let searchTimer = null;
 let lastQuery = "";
 let blurHideTimer = null;
 
-function fmtDur(ms){
+function fmtDur(ms) {
   const s = Math.round(ms/1000);
   const m = Math.floor(s/60);
   const r = s % 60;
@@ -525,7 +1272,6 @@ function fmtDur(ms){
 }
 
 function parseDuration(duration) {
-  // Parse ISO 8601 duration format (PT#M#S or PT#H#M#S)
   const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!match) return 0;
   
@@ -536,56 +1282,82 @@ function parseDuration(duration) {
   return (hours * 3600 + minutes * 60 + seconds) * 1000;
 }
 
-function crateTotalMs(){ return selected.reduce((a,t)=>a+(t.duration_ms||0),0); }
-function updateCrateDurLabel(){ $("crateDurLabel").textContent = fmtDur(crateTotalMs()); }
-function isAlreadySelected(id){ return selected.some(t=>t.id===id); }
-function canAddTrack(t){
+function crateTotalMs() {
+  return selected.reduce((a,t)=>a+(t.duration_ms||0),0);
+}
+
+function updateCrateDurLabel() {
+  $("crateDurLabel").textContent = fmtDur(crateTotalMs());
+}
+
+function isAlreadySelected(id) {
+  return selected.some(t=>t.id===id);
+}
+
+function canAddTrack(t) {
   if(!t) return false;
   if(t.duration_ms > CRATE_MAX_MS) return false;
   return (crateTotalMs()+t.duration_ms) <= CRATE_MAX_MS;
 }
 
-function renderSelected(){
+function renderSelected() {
   $("selectedCount").textContent = String(selected.length);
   updateCrateDurLabel();
   const ol = $("selected");
   ol.innerHTML = "";
+  
+  if (selected.length === 0) {
+    ol.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎵</div><div>No tracks selected yet</div></div>';
+    return;
+  }
+  
   selected.forEach((t, idx)=>{
     const li = document.createElement("li");
-    li.className = "row";
-    li.style.borderBottom = "1px solid #eee";
     li.innerHTML = `
-      <div style="max-width:70%;">
-        <b>${t.name}</b> — ${t.artist}<br/>
-        <small>${fmtDur(t.duration_ms)} | <a href="${t.url}" target="_blank">View on YouTube</a></small>
+      <div class="track-info">
+        <div class="track-name">${t.name}</div>
+        <div class="track-meta">
+          ${t.artist} • <span class="duration-badge">${fmtDur(t.duration_ms)}</span>
+        </div>
       </div>
-      <div class="btnRow">
-        <button data-act="up">↑</button>
-        <button data-act="down">↓</button>
-        <button class="danger" data-act="remove">Remove</button>
+      <div class="track-controls">
+        <button class="btn-secondary" data-act="up" ${idx===0?'disabled':''}>↑</button>
+        <button class="btn-secondary" data-act="down" ${idx===selected.length-1?'disabled':''}>↓</button>
+        <button class="btn-danger" data-act="remove">✕</button>
       </div>
     `;
+    
     li.querySelector('[data-act="up"]').onclick = ()=>{
       if(idx===0) return;
       [selected[idx-1], selected[idx]] = [selected[idx], selected[idx-1]];
-      renderSelected(); renderResults(lastSearchItems);
+      renderSelected();
+      renderResults(lastSearchItems);
     };
+    
     li.querySelector('[data-act="down"]').onclick = ()=>{
       if(idx===selected.length-1) return;
       [selected[idx+1], selected[idx]] = [selected[idx], selected[idx+1]];
-      renderSelected(); renderResults(lastSearchItems);
+      renderSelected();
+      renderResults(lastSearchItems);
     };
+    
     li.querySelector('[data-act="remove"]').onclick = ()=>{
       selected.splice(idx,1);
-      renderSelected(); renderResults(lastSearchItems);
+      renderSelected();
+      renderResults(lastSearchItems);
+      showToast("Track removed", 'info');
     };
+    
     ol.appendChild(li);
   });
 }
 
-function clearResults(){ lastSearchItems=[]; $("results").innerHTML=""; }
+function clearResults() {
+  lastSearchItems = [];
+  $("results").innerHTML = "";
+}
 
-function renderResults(items){
+function renderResults(items) {
   lastSearchItems = items || [];
   const root = $("results");
   root.innerHTML = "";
@@ -598,58 +1370,59 @@ function renderResults(items){
     const already = isAlreadySelected(t.id);
     const wouldExceed = !already && (total + t.duration_ms > CRATE_MAX_MS);
 
-    const row = document.createElement("div");
-    row.className = "row";
-    row.innerHTML = `
-      <div style="max-width:70%;">
-        <b>${t.name}</b> — ${t.artist}<br/>
-        <small>${fmtDur(t.duration_ms)}
-          ${tooLong ? "(too long)" : ""}
-          ${wouldExceed ? "(crate full)" : ""}
-        </small>
+    const div = document.createElement("div");
+    div.className = "track-item";
+    
+    let meta = `${fmtDur(t.duration_ms)}`;
+    if (tooLong) meta += ' <span class="duration-badge warning-badge">(too long)</span>';
+    if (wouldExceed) meta += ' <span class="duration-badge warning-badge">(crate full)</span>';
+    
+    div.innerHTML = `
+      <div class="track-info">
+        <div class="track-name">${t.name}</div>
+        <div class="track-meta">${t.artist} • ${meta}</div>
       </div>
-      <div class="btnRow">
-        <button ${tooLong||already||wouldExceed ? "disabled":""}>
-          ${already ? "Added" : (wouldExceed ? "Full" : "Add")}
-        </button>
-      </div>
+      <button class="btn-primary" ${tooLong||already||wouldExceed ? "disabled":""}>
+        ${already ? "✓ Added" : (wouldExceed ? "Full" : "+ Add")}
+      </button>
     `;
-    row.querySelector("button").onclick = ()=>{
+    
+    div.querySelector("button").onclick = ()=>{
       if(tooLong || already) return;
-      if(!canAddTrack(t)){
-        alert("Crate limit is 10:00 total.");
+      if(!canAddTrack(t)) {
+        showToast("Crate limit is 10:00 total", 'error');
         return;
       }
       selected.push(t);
       renderSelected();
       renderResults(items);
+      showToast("Track added!", 'success');
     };
-    root.appendChild(row);
+    
+    root.appendChild(div);
   });
 }
 
-async function doSearchAuto(q){
+async function doSearchAuto(q) {
   q = q.trim();
-  if(q.length < 2){
-    $("searchHint").textContent = "Type at least 2 characters.";
+  if(q.length < 2) {
+    $("searchHint").textContent = "Type at least 2 characters";
     clearResults();
     return;
   }
   if(q === lastQuery) return;
   lastQuery = q;
 
-  $("searchHint").textContent = "Searching…";
-  try{
-    // Search for videos
+  $("searchHint").textContent = "Searching YouTube...";
+  try {
     const searchData = await youtubeSearch(q);
     
     if (!searchData.items || searchData.items.length === 0) {
-      $("searchHint").textContent = `No results for: "${q}"`;
+      $("searchHint").textContent = `No results for "${q}"`;
       clearResults();
       return;
     }
 
-    // Get video details including duration
     const videoIds = searchData.items.map(item => item.id.videoId).join(',');
     const detailsData = await youtubeGetVideoDetails(videoIds);
     
@@ -661,39 +1434,42 @@ async function doSearchAuto(q){
       duration_ms: parseDuration(video.contentDetails.duration),
     }));
     
-    $("searchHint").textContent = `Results for: "${q}" (tap outside to hide)`;
+    $("searchHint").textContent = `Found ${items.length} results for "${q}"`;
     renderResults(items);
-  } catch(e){
-    $("searchHint").textContent = "Search failed (check API key).";
+  } catch(e) {
+    $("searchHint").textContent = "Search failed (check API key)";
     console.error(e);
+    showToast("Search failed", 'error');
   }
 }
 
-function onSearchInput(){
+function onSearchInput() {
   const q = $("searchBox").value;
   if(searchTimer) clearTimeout(searchTimer);
-  searchTimer = setTimeout(()=>doSearchAuto(q), 250);
+  searchTimer = setTimeout(()=>doSearchAuto(q), 400);
 }
-function onSearchBlur(){
+
+function onSearchBlur() {
   if(blurHideTimer) clearTimeout(blurHideTimer);
   blurHideTimer = setTimeout(()=>{
     clearResults();
     $("searchHint").textContent = "";
   }, 200);
 }
-function onSearchFocus(){
+
+function onSearchFocus() {
   if(blurHideTimer) clearTimeout(blurHideTimer);
   blurHideTimer = null;
-  $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
+  $("searchHint").textContent = "Type to search tracks";
 }
 
-function saveCrate(){
+function saveCrate() {
   const name = $("crateName").value.trim();
-  if(!name) return alert("Enter a crate name.");
-  if(!selected.length) return alert("Add some tracks first.");
+  if(!name) return showToast("Enter a crate name", 'error');
+  if(!selected.length) return showToast("Add some tracks first", 'error');
 
   const total = crateTotalMs();
-  if(total > CRATE_MAX_MS) return alert("Crate total exceeds 10:00.");
+  if(total > CRATE_MAX_MS) return showToast("Crate exceeds 10:00 limit", 'error');
 
   const crates = loadCrates();
   crates.unshift({
@@ -709,48 +1485,61 @@ function saveCrate(){
   renderSelected();
   $("crateName").value = "";
   refreshCrates();
-  alert("Crate saved.");
+  showToast("Crate saved!", 'success');
 }
 
-function refreshCrates(){
+function refreshCrates() {
   const crates = loadCrates();
   const ul = $("crates");
   ul.innerHTML = "";
+  
+  if (crates.length === 0) {
+    ul.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><div>No saved crates yet</div></div>';
+    return;
+  }
 
   crates.forEach((c)=>{
     const li = document.createElement("li");
-    li.className = "row";
+    li.className = "crate-list-item";
     li.innerHTML = `
-      <div style="max-width:70%;">
-        <b>${c.name}</b>
-        <span class="chip">${c.tracks.length} tracks</span>
-        <span class="chip">${fmtDur(c.total_ms || 0)}</span><br/>
-        <small>${new Date(c.createdAt).toLocaleString()}</small>
+      <div class="crate-header">
+        <div class="crate-title">${c.name}</div>
+        <div class="crate-badges">
+          <span class="badge badge-tracks">${c.tracks.length} tracks</span>
+          <span class="badge badge-duration">${fmtDur(c.total_ms || 0)}</span>
+        </div>
+        <div class="crate-date">${new Date(c.createdAt).toLocaleDateString()} ${new Date(c.createdAt).toLocaleTimeString()}</div>
       </div>
-      <div class="btnRow">
-        <button data-act="send" ${ble.connected ? "" : "disabled"}>Send + Download</button>
-        <button data-act="load">Load</button>
-        <button class="danger" data-act="del">Delete</button>
+      <div class="crate-actions">
+        <button class="btn-success" data-act="send" ${ble.connected ? "" : "disabled"}>Send & Download</button>
+        <button class="btn-secondary" data-act="load">Load</button>
+        <button class="btn-danger" data-act="del">Delete</button>
       </div>
     `;
 
     li.querySelector('[data-act="send"]').onclick = async ()=>{
-      if(!ble.connected) return alert("Connect BLE first.");
+      if(!ble.connected) return showToast("Connect to Pi first", 'error');
 
       showDlUI(true);
-      setDlProgress(0, "Sending crate to Pi…");
+      setDlProgress(0, "Sending crate to Pi...");
 
       const safe = (s)=>String(s||"").replace(/\|/g," ").replace(/\n/g," ").trim();
 
-      await bleWriteLine(`CRATE_BEGIN ${safe(c.name)}`);
-      await bleWriteLine(`CRATE_TOTAL_MS ${c.total_ms || 0}`);
-      for(const t of c.tracks){
-        await bleWriteLine(`CRATE_TRACK ${safe(t.id)}|${t.duration_ms||0}|${safe(t.url)}|${safe(t.name)}|${safe(t.artist)}`);
-      }
-      await bleWriteLine("CRATE_END");
+      try {
+        await bleWriteLine(`CRATE_BEGIN ${safe(c.name)}`);
+        await bleWriteLine(`CRATE_TOTAL_MS ${c.total_ms || 0}`);
+        for(const t of c.tracks) {
+          await bleWriteLine(`CRATE_TRACK ${safe(t.id)}|${t.duration_ms||0}|${safe(t.url)}|${safe(t.name)}|${safe(t.artist)}`);
+        }
+        await bleWriteLine("CRATE_END");
 
-      setDlProgress(0, "Starting yt-dlp on Pi…");
-      await bleWriteLine(`DL_START ${safe(c.name)}`);
+        setDlProgress(0, "Starting download...");
+        await bleWriteLine(`DL_START ${safe(c.name)}`);
+        showToast("Crate sent to Pi!", 'success');
+      } catch(e) {
+        showToast("Failed to send crate", 'error');
+        showDlUI(false);
+      }
     };
 
     li.querySelector('[data-act="load"]').onclick = ()=>{
@@ -758,13 +1547,15 @@ function refreshCrates(){
       c.tracks.forEach(t=>selected.push(t));
       renderSelected();
       $("crateName").value = c.name;
-      alert("Crate loaded.");
+      showToast("Crate loaded!", 'success');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     li.querySelector('[data-act="del"]').onclick = ()=>{
       if(!confirm(`Delete crate "${c.name}"?`)) return;
       saveCrates(crates.filter(x=>x.id!==c.id));
       refreshCrates();
+      showToast("Crate deleted", 'info');
     };
 
     ul.appendChild(li);
@@ -772,10 +1563,27 @@ function refreshCrates(){
 }
 /* ================================================================ */
 
+/* ======================== Collapsible sections ======================== */
+function setupCollapsible(headerId, contentId) {
+  const header = $(headerId);
+  const content = $(contentId);
+  
+  header.onclick = ()=>{
+    const isCollapsed = content.classList.contains('collapsed');
+    content.classList.toggle('collapsed');
+    header.classList.toggle('collapsed');
+  };
+}
+/* ================================================================ */
+
 /* ======================== Wire UI ======================== */
 $("bleConnectBtn").onclick = async ()=>{
   try { await bleConnect(); }
-  catch(e){ safeAlertBleError(e); cleanupBleState(); $("bleConnectBtn").disabled = false; }
+  catch(e) { 
+    safeAlertBleError(e);
+    cleanupBleState();
+    $("bleConnectBtn").disabled = false;
+  }
 };
 
 $("bleDisconnectBtn").onclick = ()=> bleDisconnect();
@@ -796,9 +1604,12 @@ $("searchBox").addEventListener("focus", onSearchFocus);
 $("saveCrateBtn").onclick = ()=> saveCrate();
 $("refreshCratesBtn").onclick = ()=> refreshCrates();
 $("clearSelectedBtn").onclick = ()=>{
+  if (selected.length === 0) return;
+  if (!confirm("Clear all tracks from current playlist?")) return;
   selected.length = 0;
   renderSelected();
   renderResults(lastSearchItems);
+  showToast("Playlist cleared", 'info');
 };
 /* ================================================================ */
 
@@ -807,12 +1618,16 @@ setBleUi(false);
 wifiRenderNets();
 renderSelected();
 refreshCrates();
+setupCollapsible('bleAdvancedHeader', 'bleAdvancedContent');
 
-(function boot(){
-  $("env").textContent =
-    `secureContext=${window.isSecureContext} | navigator.bluetooth=${!!navigator.bluetooth} | url=${location.href}`;
-
-  $("searchHint").textContent = "Type to search YouTube Music (results auto-hide when you tap outside).";
+(function boot() {
+  $("searchHint").textContent = "Type to search tracks";
+  
+  // Add subtle entrance animations
+  const cards = document.querySelectorAll('.card');
+  cards.forEach((card, i) => {
+    card.style.animationDelay = `${i * 0.1}s`;
+  });
 })();
 </script>
 </body>
