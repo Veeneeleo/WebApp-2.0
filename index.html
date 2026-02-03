@@ -384,76 +384,6 @@ async function bleConnect(){
   if(!window.isSecureContext) throw new Error("Must be HTTPS");
   if(!navigator.bluetooth) throw new Error("WebBluetooth not available");
 
-  $("bleConnectBtn").disabled = true;
-
-  const fail = (stage, err) => {
-    console.error("BLE FAIL @", stage, err);
-    logBle(`❌ FAIL @ ${stage}: ${err?.name || "n/a"} | ${err?.message || String(err)}`);
-    throw err;
-  };
-
-  try{
-    logBle("① requestDevice…");
-    const mode = $("bleMode").value;
-
-    try{
-      if(mode === "name"){
-        ble.device = await navigator.bluetooth.requestDevice({
-          filters: [{ namePrefix: "DVS" }],
-          optionalServices: [UART_SERVICE_UUID],
-        });
-      } else {
-        ble.device = await navigator.bluetooth.requestDevice({
-          filters: [{ services: [UART_SERVICE_UUID] }],
-          optionalServices: [UART_SERVICE_UUID],
-        });
-      }
-    } catch(e){ fail("requestDevice", e); }
-
-    ble.device.addEventListener("gattserverdisconnected", ()=>{
-      logBle("⚠️ gattserverdisconnected");
-      cleanupBleState();
-    });
-
-    logBle("② gatt.connect…");
-    try { ble.server = await ble.device.gatt.connect(); }
-    catch(e){ fail("gatt.connect", e); }
-
-    logBle("③ getPrimaryService(UART)…");
-    try { ble.svc = await ble.server.getPrimaryService(UART_SERVICE_UUID); }
-    catch(e){ fail("getPrimaryService", e); }
-
-    logBle("④ getCharacteristic(RX)…");
-    try { ble.rx = await ble.svc.getCharacteristic(UART_RX_UUID); }
-    catch(e){ fail("getCharacteristic RX", e); }
-
-    logBle("⑤ getCharacteristic(TX)…");
-    try { ble.tx = await ble.svc.getCharacteristic(UART_TX_UUID); }
-    catch(e){ fail("getCharacteristic TX", e); }
-
-    logBle("⑥ startNotifications(TX)…");
-    try { await ble.tx.startNotifications(); }
-    catch(e){ fail("startNotifications", e); }
-
-    ble.tx.addEventListener("characteristicvaluechanged", (ev)=>{
-      const v = ev.target.value;
-      const bytes = new Uint8Array(v.buffer);
-      onBleText(new TextDecoder().decode(bytes));
-    });
-
-    ble.connected = true;
-    setBleUi(true);
-    refreshCrates();
-    logBle("✅ BLE connected (fully ready). Now tap STATUS.");
-
-  } finally {
-    $("bleConnectBtn").disabled = ble.connected;
-  }
-}
-
-  if(!window.isSecureContext) throw new Error("Must be HTTPS");
-  if(!navigator.bluetooth) throw new Error("WebBluetooth not available");
-
   // prevent double-click / overlapping connects
   $("bleConnectBtn").disabled = true;
 
@@ -507,6 +437,7 @@ async function bleConnect(){
     // enable connect button only if still disconnected
     $("bleConnectBtn").disabled = ble.connected;
   }
+}
 
 async function bleDisconnect(){
   try{
