@@ -13,7 +13,7 @@
     .row { display:flex; gap:10px; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid #eee; }
     button,input,select { padding:10px 12px; border-radius:10px; border:1px solid #ccc; background:#fff; }
     button:disabled { opacity:0.5; }
-    input[type="text"] { width:min(520px,100%); }
+    input[type="text"], input[type="password"] { width:min(520px,100%); }
     small { opacity:0.7; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12px; }
     .grid { display:grid; grid-template-columns: 1fr; gap: 10px; }
@@ -23,6 +23,8 @@
     .chip { display:inline-block; padding:2px 8px; border-radius:999px; background:#f3f3f3; font-size:12px; }
     .danger { border-color:#f3b3b3; }
     .hint { margin-top:6px; }
+    progress { width:100%; height:18px; }
+    .tiny { font-size: 11px; }
   </style>
 </head>
 <body>
@@ -38,7 +40,7 @@
       <div class="row">
         <div>
           <b>Bluetooth</b><br/>
-          <small>Bluefy + HTTPS required.</small>
+          <small>iOS: use Bluefy + HTTPS (GitHub Pages is fine).</small>
         </div>
         <div class="btnRow">
           <button id="bleConnectBtn">Connect</button>
@@ -49,7 +51,7 @@
       <div class="row">
         <div>
           <b>Status</b><br/>
-          <small>Updates VINYL pill via STATUS polling.</small>
+          <small>Polls STATUS from Pi → updates VINYL pill.</small>
         </div>
         <div class="btnRow">
           <button id="statusBtn" disabled>STATUS</button>
@@ -58,12 +60,51 @@
         </div>
       </div>
 
-      <div class="mono" id="bleLog" style="white-space:pre-wrap;"></div>
+      <div class="mono" id="bleLog" style="white-space:pre-wrap; max-height:260px; overflow:auto;"></div>
       <div class="muted"><small id="env"></small></div>
     </section>
 
     <section class="card">
-      <h2>2) Spotify Login + Search (auto)</h2>
+      <h2>2) Wi-Fi on Pi (via BLE)</h2>
+
+      <div class="row">
+        <div>
+          <b>Scan + Join</b><br/>
+          <small>Only needed for SpotDL downloads. Turn Wi-Fi off for performance mode.</small>
+        </div>
+        <div class="btnRow">
+          <button id="wifiScanBtn" disabled>Scan</button>
+          <button id="wifiStatusBtn" disabled>Status</button>
+          <button id="wifiOffBtn" disabled>Wi-Fi Off</button>
+        </div>
+      </div>
+
+      <div class="row" style="border-bottom:none;">
+        <div style="width:100%;">
+          <div class="muted hint"><small>Networks (top 25 by signal):</small></div>
+          <select id="wifiSsid" style="width:min(520px,100%);" disabled>
+            <option value="">(scan first)</option>
+          </select>
+          <div class="hint"></div>
+          <input id="wifiPass" type="password" placeholder="Wi-Fi password (leave blank if open)" disabled />
+          <div class="btnRow" style="margin-top:10px;">
+            <button id="wifiJoinBtn" disabled>Join</button>
+          </div>
+
+          <div class="muted hint">
+            <small>
+              State: <span id="wifiState">unknown</span>
+              &nbsp; | &nbsp; IP: <span id="wifiIp">-</span>
+            </small>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>3) Spotify Login + Search</h2>
 
       <div class="row">
         <div>
@@ -81,9 +122,7 @@
       <div class="row" style="border-bottom:none;">
         <div style="width:100%;">
           <input id="searchBox" type="text" placeholder="Type to search tracks…" />
-          <div class="muted hint">
-            <small id="searchHint"></small>
-          </div>
+          <div class="muted hint"><small id="searchHint"></small></div>
           <div class="muted hint">
             <small><b>Crate cap:</b> total ≤ 10:00. Current crate: <span id="crateDurLabel">0:00</span></small>
           </div>
@@ -92,10 +131,28 @@
 
       <div id="results"></div>
     </section>
+
+    <section class="card">
+      <h2>4) Download progress (SpotDL on Pi)</h2>
+
+      <div class="row" id="dlRow" style="display:none; border-bottom:none;">
+        <div style="width:100%;">
+          <b>Downloading on Pi…</b> <span class="chip" id="dlPct">0%</span><br/>
+          <progress id="dlProg" value="0" max="100"></progress>
+          <div class="muted"><small id="dlMsg"></small></div>
+        </div>
+      </div>
+
+      <div class="muted tiny">
+        <small>
+          This progress comes from Pi notifications: DL_MSG / DL_PCT / DL_DONE / DL_ERR.
+        </small>
+      </div>
+    </section>
   </div>
 
   <section class="card">
-    <h2>3) Current Playlist (Crate)</h2>
+    <h2>5) Current Playlist (Crate)</h2>
 
     <div class="row">
       <div>
@@ -118,7 +175,7 @@
   </section>
 
   <section class="card">
-    <h2>4) Saved Crates</h2>
+    <h2>6) Saved Crates</h2>
 
     <div class="row">
       <div>
@@ -135,7 +192,7 @@
 
 <script>
 /* ======================== CHANGE ME (Spotify) ======================== */
-const SPOTIFY_CLIENT_ID = "81cff1fc219b442abfb47d9a3bba8960";
+const SPOTIFY_CLIENT_ID = "CHANGE_ME"; // <- put your real client id
 const REDIRECT_URI = location.origin + location.pathname;
 const SCOPES = ["user-read-email"];
 const CRATE_MAX_MS = 10 * 60 * 1000;   // <= 10 minutes TOTAL
@@ -159,9 +216,57 @@ function setVinylPill({ ready, lock }) {
 function enc(str){ return new TextEncoder().encode(str); }
 
 /* ======================== Local crate storage ======================== */
-const LS_KEY = "dvs_crates_v3";
+const LS_KEY = "dvs_crates_v4";
 function loadCrates(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; } }
 function saveCrates(crates){ localStorage.setItem(LS_KEY, JSON.stringify(crates)); }
+/* ================================================================ */
+
+/* ======================== Download UI ======================== */
+function showDlUI(show){ $("dlRow").style.display = show ? "" : "none"; }
+function setDlProgress(pct, msg){
+  pct = Math.max(0, Math.min(100, pct|0));
+  $("dlProg").value = pct;
+  $("dlPct").textContent = pct + "%";
+  $("dlMsg").textContent = msg || "";
+}
+/* ================================================================ */
+
+/* ======================== Wi-Fi UI ======================== */
+let wifiNets = []; // {ssid, signal}
+function wifiSetEnabled(en){
+  $("wifiScanBtn").disabled = !en;
+  $("wifiStatusBtn").disabled = !en;
+  $("wifiOffBtn").disabled = !en;
+  $("wifiSsid").disabled = !en;
+  $("wifiPass").disabled = !en;
+  $("wifiJoinBtn").disabled = !en;
+}
+function wifiRenderNets(){
+  const sel = $("wifiSsid");
+  sel.innerHTML = "";
+  if (!wifiNets.length){
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "(no networks yet — tap Scan)";
+    sel.appendChild(opt);
+    return;
+  }
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "(choose a network)";
+  sel.appendChild(opt0);
+
+  wifiNets.forEach(n => {
+    const opt = document.createElement("option");
+    opt.value = n.ssid;
+    opt.textContent = `${n.ssid} (${n.signal}%)`;
+    sel.appendChild(opt);
+  });
+}
+function wifiSetState(state, ip=""){
+  $("wifiState").textContent = state || "unknown";
+  $("wifiIp").textContent = ip || "-";
+}
 /* ================================================================ */
 
 /* ======================== BLE client ======================== */
@@ -179,6 +284,7 @@ function setBleUi(connected) {
   $("statusBtn").disabled = !connected;
   $("startPollBtn").disabled = !connected;
   $("stopPollBtn").disabled = !connected;
+  wifiSetEnabled(connected);
 }
 
 async function bleWriteLine(line) {
@@ -197,11 +303,62 @@ function onBleText(text) {
     ble.notifyBuf = ble.notifyBuf.slice(idx + 1);
     if (!line) continue;
 
+    // ---- dvs_core STATUS parsing ----
     if (line.startsWith("READY ")) ble.lastStatus.ready = line.endsWith("1");
     else if (line.startsWith("LOCK ")) ble.lastStatus.lock = line.endsWith("1");
     else if (line.startsWith("POS_MS ")) ble.lastStatus.posMs = parseInt(line.slice(7), 10) || 0;
     else if (line.startsWith("RATE ")) ble.lastStatus.rate = parseFloat(line.slice(5)) || 0;
     else if (line === ".") setVinylPill({ ready: ble.lastStatus.ready, lock: ble.lastStatus.lock });
+
+    // ---- SpotDL progress parsing ----
+    else if (line.startsWith("DL_PCT ")) {
+      const pct = parseInt(line.slice(7), 10) || 0;
+      showDlUI(true);
+      setDlProgress(pct, $("dlMsg").textContent);
+    }
+    else if (line.startsWith("DL_MSG ")) {
+      const msg = line.slice(7);
+      showDlUI(true);
+      setDlProgress(parseInt($("dlProg").value,10)||0, msg);
+    }
+    else if (line === "DL_DONE") {
+      setDlProgress(100, "Done.");
+      setTimeout(()=>showDlUI(false), 1500);
+    }
+    else if (line.startsWith("DL_ERR ")) {
+      showDlUI(true);
+      setDlProgress(parseInt($("dlProg").value,10)||0, "Error: " + line.slice(7));
+      alert("Download failed: " + line.slice(7));
+    }
+
+    // ---- Wi-Fi parsing ----
+    else if (line.startsWith("WIFI_NET ")) {
+      // WIFI_NET ssid|signal
+      const payload = line.slice(9);
+      const [ssid, sig] = payload.split("|");
+      const signal = parseInt(sig || "0", 10) || 0;
+      if (ssid && ssid.trim()) {
+        // avoid duplicates, keep best signal
+        const s = ssid.trim();
+        const i = wifiNets.findIndex(x => x.ssid === s);
+        if (i >= 0) wifiNets[i].signal = Math.max(wifiNets[i].signal, signal);
+        else wifiNets.push({ssid: s, signal});
+      }
+    }
+    else if (line === "WIFI_SCAN_DONE") {
+      wifiNets.sort((a,b)=>b.signal-a.signal);
+      wifiRenderNets();
+      logBle("Wi-Fi scan done.");
+    }
+    else if (line.startsWith("WIFI_STATE ")) {
+      wifiSetState(line.slice(11), $("wifiIp").textContent === "-" ? "" : $("wifiIp").textContent);
+    }
+    else if (line.startsWith("WIFI_IP ")) {
+      wifiSetState($("wifiState").textContent, line.slice(8).trim());
+    }
+    else if (line.startsWith("WIFI_ERR ")) {
+      alert("Wi-Fi error: " + line.slice(9));
+    }
 
     logBle(line);
   }
@@ -229,7 +386,7 @@ async function bleConnect() {
 
   ble.connected = true;
   setBleUi(true);
-  refreshCrates(); // re-render so "Send to Pi" enables
+  refreshCrates();
   logBle("BLE connected. Tap STATUS.");
 }
 
@@ -276,8 +433,8 @@ function randomString(len = 64) {
 function spotifyToken(){ return localStorage.getItem("spotify_token"); }
 
 async function spotifyLogin() {
-  if (SPOTIFY_CLIENT_ID.includes("CHANGE_ME")) {
-    alert("Set SPOTIFY_CLIENT_ID in the HTML first.");
+  if (SPOTIFY_CLIENT_ID === "CHANGE_ME" || !SPOTIFY_CLIENT_ID.trim()) {
+    alert("Set SPOTIFY_CLIENT_ID at the top of the HTML first.");
     return;
   }
   const verifier = randomString(96);
@@ -509,15 +666,12 @@ function onSearchInput(){
 
 /* Hide results when leaving search bar, but allow tapping results */
 function onSearchBlur(){
-  // Delay so a tap on a result button can still register
   if (blurHideTimer) clearTimeout(blurHideTimer);
   blurHideTimer = setTimeout(() => {
     clearResults();
     $("searchHint").textContent = "";
   }, 200);
 }
-
-/* If user focuses back, cancel the hide */
 function onSearchFocus(){
   if (blurHideTimer) clearTimeout(blurHideTimer);
   blurHideTimer = null;
@@ -531,7 +685,6 @@ function saveCrate(){
   if (!name) return alert("Enter a crate name.");
   if (!selected.length) return alert("Add some tracks first.");
 
-  // Enforce cap again on save (just in case)
   const total = crateTotalMs();
   if (total > CRATE_MAX_MS) {
     alert("Crate total exceeds 10:00. Remove tracks until it's under 10:00.");
@@ -571,7 +724,7 @@ function refreshCrates(){
         <small>${new Date(c.createdAt).toLocaleString()}</small>
       </div>
       <div class="btnRow">
-        <button data-act="send" ${ble.connected ? "" : "disabled"}>Send to Pi</button>
+        <button data-act="send" ${ble.connected ? "" : "disabled"}>Send + Download</button>
         <button data-act="load">Load</button>
         <button class="danger" data-act="del">Delete</button>
       </div>
@@ -579,13 +732,23 @@ function refreshCrates(){
 
     li.querySelector('[data-act="send"]').onclick = async () => {
       if (!ble.connected) return alert("Connect BLE first.");
-      await bleWriteLine(`CRATE_BEGIN ${c.name}`);
+
+      showDlUI(true);
+      setDlProgress(0, "Sending crate to Pi…");
+
+      const safe = (s)=>String(s||"").replace(/\|/g," ").replace(/\n/g," ").trim();
+
+      await bleWriteLine(`CRATE_BEGIN ${safe(c.name)}`);
       await bleWriteLine(`CRATE_TOTAL_MS ${c.total_ms || 0}`);
       for (const t of c.tracks) {
-        await bleWriteLine(`CRATE_TRACK ${t.name} | ${t.artist} | ${t.duration_ms} | ${t.uri}`);
+        await bleWriteLine(`CRATE_TRACK ${safe(t.id)}|${t.duration_ms||0}|${safe(t.uri)}|${safe(t.name)}|${safe(t.artist)}`);
       }
       await bleWriteLine("CRATE_END");
-      alert("Crate metadata sent to Pi.");
+
+      setDlProgress(0, "Starting SpotDL on Pi…");
+      await bleWriteLine(`DL_START ${safe(c.name)}`);
+
+      // Progress will update from DL_MSG/DL_PCT
     };
 
     li.querySelector('[data-act="load"]').onclick = () => {
@@ -608,6 +771,33 @@ function refreshCrates(){
 }
 /* ================================================================ */
 
+/* ======================== Wi-Fi actions ======================== */
+async function wifiScan(){
+  if (!ble.connected) return alert("Connect BLE first.");
+  wifiNets = [];
+  wifiRenderNets();
+  wifiSetState("scanning", "");
+  await bleWriteLine("WIFI_SCAN");
+}
+async function wifiJoin(){
+  if (!ble.connected) return alert("Connect BLE first.");
+  const ssid = $("wifiSsid").value;
+  const pwd = $("wifiPass").value;
+  if (!ssid) return alert("Choose a network SSID first.");
+  wifiSetState("connecting", "");
+  // format: WIFI_JOIN ssid|password
+  await bleWriteLine(`WIFI_JOIN ${ssid}|${pwd}`);
+}
+async function wifiStatus(){
+  if (!ble.connected) return alert("Connect BLE first.");
+  await bleWriteLine("WIFI_STATUS");
+}
+async function wifiOff(){
+  if (!ble.connected) return alert("Connect BLE first.");
+  await bleWriteLine("WIFI_OFF");
+}
+/* ================================================================ */
+
 /* ======================== Wire UI ======================== */
 $("bleConnectBtn").onclick = () => bleConnect().catch(e => alert("BLE connect error: " + (e?.message || e)));
 $("bleDisconnectBtn").onclick = () => bleDisconnect();
@@ -615,6 +805,11 @@ $("bleDisconnectBtn").onclick = () => bleDisconnect();
 $("statusBtn").onclick = () => statusOnce().catch(e => alert("STATUS error: " + (e?.message || e)));
 $("startPollBtn").onclick = () => startPoll();
 $("stopPollBtn").onclick = () => stopPoll();
+
+$("wifiScanBtn").onclick = () => wifiScan().catch(e => alert("Wi-Fi scan error: " + (e?.message || e)));
+$("wifiJoinBtn").onclick = () => wifiJoin().catch(e => alert("Wi-Fi join error: " + (e?.message || e)));
+$("wifiStatusBtn").onclick = () => wifiStatus().catch(e => alert("Wi-Fi status error: " + (e?.message || e)));
+$("wifiOffBtn").onclick = () => wifiOff().catch(e => alert("Wi-Fi off error: " + (e?.message || e)));
 
 $("spotifyLoginBtn").onclick = () => spotifyLogin().catch(e => alert("Spotify login error: " + (e?.message || e)));
 $("spotifyLogoutBtn").onclick = () => spotifyLogout();
@@ -634,6 +829,7 @@ $("clearSelectedBtn").onclick = () => {
 
 /* ======================== Boot ======================== */
 setBleUi(false);
+wifiRenderNets();
 renderSelected();
 refreshCrates();
 
