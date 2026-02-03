@@ -25,6 +25,8 @@
     .hint { margin-top:6px; }
     progress { width:100%; height:18px; }
     .tiny { font-size: 11px; }
+    .split { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .w520 { width:min(520px,100%); }
   </style>
 </head>
 <body>
@@ -40,11 +42,24 @@
       <div class="row">
         <div>
           <b>Bluetooth</b><br/>
-          <small>iOS: use Bluefy + HTTPS (GitHub Pages is fine).</small>
+          <small>iOS: Bluefy + HTTPS required.</small>
         </div>
         <div class="btnRow">
           <button id="bleConnectBtn">Connect</button>
           <button id="bleDisconnectBtn" disabled>Disconnect</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <b>Connection mode</b><br/>
+          <small>If your Pi doesn’t show in the picker, switch to Name mode.</small>
+        </div>
+        <div class="btnRow">
+          <select id="bleMode">
+            <option value="uuid" selected>Filter by UART UUID</option>
+            <option value="name">Filter by Name Prefix (DVS)</option>
+          </select>
         </div>
       </div>
 
@@ -70,7 +85,7 @@
       <div class="row">
         <div>
           <b>Scan + Join</b><br/>
-          <small>Only needed for SpotDL downloads. Turn Wi-Fi off for performance mode.</small>
+          <small>Only needed for SpotDL downloads. Turn Wi-Fi off during play if you want.</small>
         </div>
         <div class="btnRow">
           <button id="wifiScanBtn" disabled>Scan</button>
@@ -81,12 +96,14 @@
 
       <div class="row" style="border-bottom:none;">
         <div style="width:100%;">
-          <div class="muted hint"><small>Networks (top 25 by signal):</small></div>
-          <select id="wifiSsid" style="width:min(520px,100%);" disabled>
+          <div class="muted hint"><small>Networks:</small></div>
+          <select id="wifiSsid" class="w520" disabled>
             <option value="">(scan first)</option>
           </select>
+
           <div class="hint"></div>
-          <input id="wifiPass" type="password" placeholder="Wi-Fi password (leave blank if open)" disabled />
+          <input id="wifiPass" type="password" class="w520" placeholder="Wi-Fi password (blank if open)" disabled />
+
           <div class="btnRow" style="margin-top:10px;">
             <button id="wifiJoinBtn" disabled>Join</button>
           </div>
@@ -121,7 +138,7 @@
 
       <div class="row" style="border-bottom:none;">
         <div style="width:100%;">
-          <input id="searchBox" type="text" placeholder="Type to search tracks…" />
+          <input id="searchBox" type="text" placeholder="Type to search tracks…" class="w520" />
           <div class="muted hint"><small id="searchHint"></small></div>
           <div class="muted hint">
             <small><b>Crate cap:</b> total ≤ 10:00. Current crate: <span id="crateDurLabel">0:00</span></small>
@@ -145,7 +162,7 @@
 
       <div class="muted tiny">
         <small>
-          This progress comes from Pi notifications: DL_MSG / DL_PCT / DL_DONE / DL_ERR.
+          From Pi notifications: DL_MSG / DL_PCT / DL_DONE / DL_ERR.
         </small>
       </div>
     </section>
@@ -167,7 +184,7 @@
     <ol id="selected"></ol>
 
     <div class="row" style="border-bottom:none;">
-      <input id="crateName" type="text" placeholder="Crate name (e.g., My Set 1)" />
+      <input id="crateName" type="text" placeholder="Crate name (e.g., My Set 1)" class="w520" />
       <div class="btnRow">
         <button id="saveCrateBtn">Save Crate</button>
       </div>
@@ -192,11 +209,10 @@
 
 <script>
 /* ======================== CHANGE ME (Spotify) ======================== */
-const SPOTIFY_CLIENT_ID = "81cff1fc219b442abfb47d9a3bba8960"; // <- put your real client id
-const REDIRECT_URI = "https://veeneeleo.github.io/WebApp-2.0/";
-// must match Spotify dashboard EXACTLY
+const SPOTIFY_CLIENT_ID = "81cff1fc219b442abfb47d9a3bba8960";   // <- your Spotify Client ID
+const REDIRECT_URI = "https://veeneeleo.github.io/WebApp-2.0/";        // <- set EXACT redirect (include trailing slash if used)
 const SCOPES = ["user-read-email"];
-const CRATE_MAX_MS = 10 * 60 * 1000;   // <= 10 minutes TOTAL
+const CRATE_MAX_MS = 10 * 60 * 1000;     // <= 10 minutes TOTAL
 /* ================================================================ */
 
 /* ======================== BLE Nordic UART UUIDs ======================== */
@@ -214,41 +230,234 @@ function setVinylPill({ ready, lock }) {
   else if (lock) { pill.className="pill warn"; pill.textContent="VINYL: LOCKED"; }
   else { pill.className="pill bad"; pill.textContent="VINYL: NO LOCK"; }
 }
-function enc(str){ return new TextEncoder().encode(str); }
 
-/* ======================== Local crate storage ======================== */
-const LS_KEY = "dvs_crates_v4";
-function loadCrates(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; } }
-function saveCrates(crates){ localStorage.setItem(LS_KEY, JSON.stringify(crates)); }
-/* ================================================================ */
+const enc = (s)=> new TextEncoder().encode(s);
+const dec = (u8)=> new TextDecoder().decode(u8);
 
 /* ======================== Download UI ======================== */
 function showDlUI(show){ $("dlRow").style.display = show ? "" : "none"; }
 function setDlProgress(pct, msg){
-  pct = Math.max(0, Math.min(100, pct|0));
+  pct = Math.max(0, Math.min(100, (pct|0)));
   $("dlProg").value = pct;
   $("dlPct").textContent = pct + "%";
   $("dlMsg").textContent = msg || "";
 }
 /* ================================================================ */
 
-/* ======================== Wi-Fi UI ======================== */
-let wifiNets = []; // {ssid, signal}
-function wifiSetEnabled(en){
-  $("wifiScanBtn").disabled = !en;
-  $("wifiStatusBtn").disabled = !en;
-  $("wifiOffBtn").disabled = !en;
-  $("wifiSsid").disabled = !en;
-  $("wifiPass").disabled = !en;
-  $("wifiJoinBtn").disabled = !en;
+/* ======================== Local crate storage ======================== */
+const LS_KEY = "dvs_crates_v5";
+function loadCrates(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; } }
+function saveCrates(crates){ localStorage.setItem(LS_KEY, JSON.stringify(crates)); }
+/* ================================================================ */
+
+/* ======================== BLE ======================== */
+let ble = {
+  device:null,
+  server:null,
+  svc:null,
+  rx:null,
+  tx:null,
+  connected:false,
+  notifyBuf:"",
+  pollTimer:null,
+  lastStatus:{ready:false, lock:false, posMs:0, rate:1.0},
+};
+
+function setBleUi(connected){
+  $("bleConnectBtn").disabled = connected;
+  $("bleDisconnectBtn").disabled = !connected;
+  $("statusBtn").disabled = !connected;
+  $("startPollBtn").disabled = !connected;
+  $("stopPollBtn").disabled = !connected;
+
+  $("wifiScanBtn").disabled = !connected;
+  $("wifiStatusBtn").disabled = !connected;
+  $("wifiOffBtn").disabled = !connected;
+  $("wifiSsid").disabled = !connected;
+  $("wifiPass").disabled = !connected;
+  $("wifiJoinBtn").disabled = !connected;
 }
+
+function safeAlertBleError(e){
+  console.error("BLE error:", e);
+  const name = e?.name || "n/a";
+  const msg = e?.message || String(e);
+  const code = (e?.code ?? "n/a");
+  alert(`BLE error:\nname=${name}\nmessage=${msg}\ncode=${code}`);
+}
+
+function onBleText(text){
+  ble.notifyBuf += text;
+  let idx;
+  while((idx = ble.notifyBuf.indexOf("\n")) >= 0){
+    const line = ble.notifyBuf.slice(0, idx).trim();
+    ble.notifyBuf = ble.notifyBuf.slice(idx + 1);
+    if(!line) continue;
+
+    // dvs_core STATUS parsing
+    if (line.startsWith("READY ")) ble.lastStatus.ready = line.endsWith("1");
+    else if (line.startsWith("LOCK ")) ble.lastStatus.lock = line.endsWith("1");
+    else if (line.startsWith("POS_MS ")) ble.lastStatus.posMs = parseInt(line.slice(7), 10) || 0;
+    else if (line.startsWith("RATE ")) ble.lastStatus.rate = parseFloat(line.slice(5)) || 0;
+    else if (line === ".") setVinylPill({ ready: ble.lastStatus.ready, lock: ble.lastStatus.lock });
+
+    // SpotDL progress parsing
+    else if (line.startsWith("DL_PCT ")) {
+      showDlUI(true);
+      setDlProgress(parseInt(line.slice(7),10)||0, $("dlMsg").textContent);
+    } else if (line.startsWith("DL_MSG ")) {
+      showDlUI(true);
+      setDlProgress(parseInt($("dlProg").value,10)||0, line.slice(7));
+    } else if (line === "DL_DONE") {
+      setDlProgress(100, "Done.");
+      setTimeout(()=>showDlUI(false), 1500);
+    } else if (line.startsWith("DL_ERR ")) {
+      showDlUI(true);
+      setDlProgress(parseInt($("dlProg").value,10)||0, "Error: " + line.slice(7));
+      alert("Download failed: " + line.slice(7));
+    }
+
+    // Wi-Fi parsing
+    else if (line.startsWith("WIFI_NET ")) {
+      const payload = line.slice(9);
+      const [ssid, sig] = payload.split("|");
+      const signal = parseInt(sig||"0",10)||0;
+      if(ssid && ssid.trim()){
+        const s = ssid.trim();
+        const i = wifiNets.findIndex(x=>x.ssid===s);
+        if(i>=0) wifiNets[i].signal = Math.max(wifiNets[i].signal, signal);
+        else wifiNets.push({ssid:s, signal});
+      }
+    } else if (line === "WIFI_SCAN_DONE") {
+      wifiNets.sort((a,b)=>b.signal-a.signal);
+      wifiRenderNets();
+      logBle("Wi-Fi scan done.");
+    } else if (line.startsWith("WIFI_STATE ")) {
+      wifiSetState(line.slice(11).trim(), $("wifiIp").textContent === "-" ? "" : $("wifiIp").textContent);
+    } else if (line.startsWith("WIFI_IP ")) {
+      wifiSetState($("wifiState").textContent, line.slice(8).trim());
+    } else if (line.startsWith("WIFI_ERR ")) {
+      alert("Wi-Fi error: " + line.slice(9));
+    }
+
+    logBle(line);
+  }
+}
+
+async function bleWriteLine(line){
+  if(!ble.connected || !ble.rx) throw new Error("Not connected");
+  if(!line.endsWith("\n")) line += "\n";
+  const data = enc(line);
+
+  // iOS reliability: prefer writeValue
+  if (ble.rx.writeValue) await ble.rx.writeValue(data);
+  else await ble.rx.writeValueWithoutResponse(data);
+}
+
+function stopPoll(){
+  if(ble.pollTimer) clearInterval(ble.pollTimer);
+  ble.pollTimer = null;
+}
+
+async function statusOnce(){ await bleWriteLine("STATUS"); }
+
+function startPoll(){
+  stopPoll();
+  ble.pollTimer = setInterval(()=>{
+    if(ble.connected) bleWriteLine("STATUS").catch(()=>{});
+  }, 300);
+  logBle("Polling STATUS…");
+}
+
+function cleanupBleState(){
+  stopPoll();
+  ble.connected = false;
+  ble.server = null;
+  ble.svc = null;
+  ble.rx = null;
+  ble.tx = null;
+  setBleUi(false);
+  refreshCrates();
+}
+
+async function bleConnect(){
+  if(!window.isSecureContext) throw new Error("Must be HTTPS");
+  if(!navigator.bluetooth) throw new Error("WebBluetooth not available");
+
+  // prevent double-click / overlapping connects
+  $("bleConnectBtn").disabled = true;
+
+  try{
+    logBle("Requesting device…");
+
+    const mode = $("bleMode").value;
+
+    if(mode === "name"){
+      ble.device = await navigator.bluetooth.requestDevice({
+        filters: [{ namePrefix: "DVS" }],
+        optionalServices: [UART_SERVICE_UUID],
+      });
+    } else {
+      ble.device = await navigator.bluetooth.requestDevice({
+        filters: [{ services: [UART_SERVICE_UUID] }],
+        optionalServices: [UART_SERVICE_UUID],
+      });
+    }
+
+    ble.device.addEventListener("gattserverdisconnected", ()=>{
+      logBle("GATT disconnected.");
+      cleanupBleState();
+    });
+
+    logBle("Connecting GATT…");
+    ble.server = await ble.device.gatt.connect();
+
+    logBle("Getting UART service…");
+    ble.svc = await ble.server.getPrimaryService(UART_SERVICE_UUID);
+
+    logBle("Getting characteristics…");
+    ble.rx = await ble.svc.getCharacteristic(UART_RX_UUID);
+    ble.tx = await ble.svc.getCharacteristic(UART_TX_UUID);
+
+    logBle("Enabling notifications…");
+    await ble.tx.startNotifications();
+
+    ble.tx.addEventListener("characteristicvaluechanged", (ev)=>{
+      const v = ev.target.value;
+      const bytes = new Uint8Array(v.buffer);
+      onBleText(dec(bytes));
+    });
+
+    // NOW we are truly connected
+    ble.connected = true;
+    setBleUi(true);
+    refreshCrates();
+    logBle("BLE connected ✅");
+  } finally {
+    // enable connect button only if still disconnected
+    $("bleConnectBtn").disabled = ble.connected;
+  }
+}
+
+async function bleDisconnect(){
+  try{
+    stopPoll();
+    if(ble.device?.gatt?.connected) ble.device.gatt.disconnect();
+  } catch {}
+  cleanupBleState();
+  logBle("BLE disconnected.");
+}
+/* ================================================================ */
+
+/* ======================== Wi-Fi UI ======================== */
+let wifiNets = [];
 function wifiRenderNets(){
   const sel = $("wifiSsid");
   sel.innerHTML = "";
-  if (!wifiNets.length){
+  if(!wifiNets.length){
     const opt = document.createElement("option");
     opt.value = "";
-    opt.textContent = "(no networks yet — tap Scan)";
+    opt.textContent = "(no networks — tap Scan)";
     sel.appendChild(opt);
     return;
   }
@@ -256,8 +465,7 @@ function wifiRenderNets(){
   opt0.value = "";
   opt0.textContent = "(choose a network)";
   sel.appendChild(opt0);
-
-  wifiNets.forEach(n => {
+  wifiNets.forEach(n=>{
     const opt = document.createElement("option");
     opt.value = n.ssid;
     opt.textContent = `${n.ssid} (${n.signal}%)`;
@@ -268,185 +476,28 @@ function wifiSetState(state, ip=""){
   $("wifiState").textContent = state || "unknown";
   $("wifiIp").textContent = ip || "-";
 }
-/* ================================================================ */
-
-/* ======================== BLE client ======================== */
-let ble = {
-  device:null, server:null, rx:null, tx:null,
-  connected:false,
-  notifyBuf:"",
-  lastStatus:{ready:false, lock:false, posMs:0, rate:1.0},
-  pollTimer:null,
-};
-
-function setBleUi(connected) {
-  $("bleConnectBtn").disabled = connected;
-  $("bleDisconnectBtn").disabled = !connected;
-  $("statusBtn").disabled = !connected;
-  $("startPollBtn").disabled = !connected;
-  $("stopPollBtn").disabled = !connected;
-  wifiSetEnabled(connected);
+async function wifiScan(){
+  if(!ble.connected) return alert("Connect BLE first.");
+  wifiNets = [];
+  wifiRenderNets();
+  wifiSetState("scanning","");
+  await bleWriteLine("WIFI_SCAN");
 }
-
-async function bleWriteLine(line) {
-  if (!ble.connected) throw new Error("BLE not connected");
-  if (!line.endsWith("\n")) line += "\n";
-  const data = enc(line);
-
-  // Prefer reliable write
-  if (ble.rx.writeValue) {
-    await ble.rx.writeValue(data);
-  } else {
-    await ble.rx.writeValueWithoutResponse(data);
-  }
+async function wifiJoin(){
+  if(!ble.connected) return alert("Connect BLE first.");
+  const ssid = $("wifiSsid").value;
+  const pwd = $("wifiPass").value;
+  if(!ssid) return alert("Choose a network first.");
+  wifiSetState("connecting","");
+  await bleWriteLine(`WIFI_JOIN ${ssid}|${pwd}`);
 }
-
-
-function onBleText(text) {
-  ble.notifyBuf += text;
-  let idx;
-  while ((idx = ble.notifyBuf.indexOf("\n")) >= 0) {
-    const line = ble.notifyBuf.slice(0, idx).trim();
-    ble.notifyBuf = ble.notifyBuf.slice(idx + 1);
-    if (!line) continue;
-
-    // ---- dvs_core STATUS parsing ----
-    if (line.startsWith("READY ")) ble.lastStatus.ready = line.endsWith("1");
-    else if (line.startsWith("LOCK ")) ble.lastStatus.lock = line.endsWith("1");
-    else if (line.startsWith("POS_MS ")) ble.lastStatus.posMs = parseInt(line.slice(7), 10) || 0;
-    else if (line.startsWith("RATE ")) ble.lastStatus.rate = parseFloat(line.slice(5)) || 0;
-    else if (line === ".") setVinylPill({ ready: ble.lastStatus.ready, lock: ble.lastStatus.lock });
-
-    // ---- SpotDL progress parsing ----
-    else if (line.startsWith("DL_PCT ")) {
-      const pct = parseInt(line.slice(7), 10) || 0;
-      showDlUI(true);
-      setDlProgress(pct, $("dlMsg").textContent);
-    }
-    else if (line.startsWith("DL_MSG ")) {
-      const msg = line.slice(7);
-      showDlUI(true);
-      setDlProgress(parseInt($("dlProg").value,10)||0, msg);
-    }
-    else if (line === "DL_DONE") {
-      setDlProgress(100, "Done.");
-      setTimeout(()=>showDlUI(false), 1500);
-    }
-    else if (line.startsWith("DL_ERR ")) {
-      showDlUI(true);
-      setDlProgress(parseInt($("dlProg").value,10)||0, "Error: " + line.slice(7));
-      alert("Download failed: " + line.slice(7));
-    }
-
-    // ---- Wi-Fi parsing ----
-    else if (line.startsWith("WIFI_NET ")) {
-      // WIFI_NET ssid|signal
-      const payload = line.slice(9);
-      const [ssid, sig] = payload.split("|");
-      const signal = parseInt(sig || "0", 10) || 0;
-      if (ssid && ssid.trim()) {
-        // avoid duplicates, keep best signal
-        const s = ssid.trim();
-        const i = wifiNets.findIndex(x => x.ssid === s);
-        if (i >= 0) wifiNets[i].signal = Math.max(wifiNets[i].signal, signal);
-        else wifiNets.push({ssid: s, signal});
-      }
-    }
-    else if (line === "WIFI_SCAN_DONE") {
-      wifiNets.sort((a,b)=>b.signal-a.signal);
-      wifiRenderNets();
-      logBle("Wi-Fi scan done.");
-    }
-    else if (line.startsWith("WIFI_STATE ")) {
-      wifiSetState(line.slice(11), $("wifiIp").textContent === "-" ? "" : $("wifiIp").textContent);
-    }
-    else if (line.startsWith("WIFI_IP ")) {
-      wifiSetState($("wifiState").textContent, line.slice(8).trim());
-    }
-    else if (line.startsWith("WIFI_ERR ")) {
-      alert("Wi-Fi error: " + line.slice(9));
-    }
-
-    logBle(line);
-  }
+async function wifiStatus(){
+  if(!ble.connected) return alert("Connect BLE first.");
+  await bleWriteLine("WIFI_STATUS");
 }
-
-async function bleConnect() {
- async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
-
-async function bleConnect() {
-  if (!window.isSecureContext) throw new Error("Must be HTTPS");
-  if (!navigator.bluetooth) throw new Error("WebBluetooth not available");
-
-  logBle("Requesting device…");
-  const device = await navigator.bluetooth.requestDevice({
-    filters: [{ services: [UART_SERVICE_UUID] }],
-    optionalServices: [UART_SERVICE_UUID],
-  });
-  ble.device = device;
-
-  // Always attach disconnect handler
-  ble.device.addEventListener("gattserverdisconnected", () => {
-    logBle("GATT disconnected.");
-    ble.connected = false;
-    setBleUi(false);
-    refreshCrates();
-  });
-
-  logBle("Connecting GATT…");
-  await sleep(250); // IMPORTANT for iOS/Bluefy stability
-  ble.server = await ble.device.gatt.connect();
-
-  logBle("Getting UART service…");
-  await sleep(150);
-  const svc = await ble.server.getPrimaryService(UART_SERVICE_UUID);
-
-  logBle("Getting characteristics…");
-  await sleep(150);
-  ble.rx = await svc.getCharacteristic(UART_RX_UUID);
-  ble.tx = await svc.getCharacteristic(UART_TX_UUID);
-
-  logBle("Starting notifications…");
-  await sleep(150);
-  await ble.tx.startNotifications();
-
-  ble.tx.addEventListener("characteristicvaluechanged", (ev) => {
-    const v = ev.target.value;
-    const bytes = new Uint8Array(v.buffer);
-    onBleText(new TextDecoder().decode(bytes));
-  });
-
-  ble.connected = true;
-  setBleUi(true);
-  refreshCrates();
-  logBle("BLE connected.");
-}
-
-}
-
-async function bleDisconnect() {
-  stopPoll();
-  try { if (ble.device?.gatt?.connected) ble.device.gatt.disconnect(); } catch {}
-  ble.connected = false;
-  setBleUi(false);
-  refreshCrates();
-  logBle("BLE disconnected.");
-}
-
-async function statusOnce(){ await bleWriteLine("STATUS"); }
-
-function startPoll() {
-  stopPoll();
-  ble.pollTimer = setInterval(() => {
-    if (ble.connected) bleWriteLine("STATUS").catch(()=>{});
-  }, 300);
-  logBle("Polling STATUS…");
-}
-
-function stopPoll() {
-  if (ble.pollTimer) clearInterval(ble.pollTimer);
-  ble.pollTimer = null;
-  logBle("Stopped polling.");
+async function wifiOff(){
+  if(!ble.connected) return alert("Connect BLE first.");
+  await bleWriteLine("WIFI_OFF");
 }
 /* ================================================================ */
 
@@ -466,14 +517,20 @@ function randomString(len = 64) {
 }
 function spotifyToken(){ return localStorage.getItem("spotify_token"); }
 
-async function spotifyLogin() {
+async function spotifyLogin(){
   if (SPOTIFY_CLIENT_ID === "CHANGE_ME" || !SPOTIFY_CLIENT_ID.trim()) {
-    alert("Set SPOTIFY_CLIENT_ID at the top of the HTML first.");
+    alert("Set SPOTIFY_CLIENT_ID first.");
     return;
   }
+  if (REDIRECT_URI === "CHANGE_ME" || !REDIRECT_URI.trim()) {
+    alert("Set REDIRECT_URI first (must match Spotify dashboard exactly).");
+    return;
+  }
+
   const verifier = randomString(96);
   const challenge = base64urlencode(await sha256(verifier));
-  localStorage.setItem("pkce_verifier", verifier);
+  // sessionStorage tends to behave better on iOS for PKCE flows
+  sessionStorage.setItem("pkce_verifier", verifier);
 
   const args = new URLSearchParams({
     client_id: SPOTIFY_CLIENT_ID,
@@ -487,8 +544,8 @@ async function spotifyLogin() {
   location.href = `https://accounts.spotify.com/authorize?${args.toString()}`;
 }
 
-async function exchangeCodeForToken(code) {
-  const verifier = localStorage.getItem("pkce_verifier");
+async function exchangeCodeForToken(code){
+  const verifier = sessionStorage.getItem("pkce_verifier");
   const body = new URLSearchParams({
     client_id: SPOTIFY_CLIENT_ID,
     grant_type: "authorization_code",
@@ -502,22 +559,25 @@ async function exchangeCodeForToken(code) {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
   });
+
   const data = await r.json();
   if (!r.ok) throw new Error(JSON.stringify(data));
   localStorage.setItem("spotify_token", data.access_token);
+  // Remove code from URL so it can't be reused
   history.replaceState({}, document.title, REDIRECT_URI);
   return data.access_token;
 }
 
-function spotifyLogout() {
+function spotifyLogout(){
   localStorage.removeItem("spotify_token");
+  sessionStorage.removeItem("pkce_verifier");
   $("me").textContent = "";
   clearResults();
   $("searchHint").textContent = "";
   alert("Logged out.");
 }
 
-async function spotifyGET(path) {
+async function spotifyGET(path){
   const token = spotifyToken();
   if (!token) throw new Error("Not logged in");
   const r = await fetch(`https://api.spotify.com/v1${path}`, {
@@ -528,15 +588,18 @@ async function spotifyGET(path) {
   return data;
 }
 
-async function loadMe() {
+async function loadMe(){
   const me = await spotifyGET("/me");
   $("me").textContent = `Logged in as: ${me.display_name || me.id}`;
 }
 /* ================================================================ */
 
-/* ======================== Auto search + crate cap + hide results ======================== */
-const selected = []; // current in-progress crate
-let lastSearchItems = []; // keep items so we can re-render button state
+/* ======================== Auto search + crate cap ======================== */
+const selected = [];
+let lastSearchItems = [];
+let searchTimer = null;
+let lastQuery = "";
+let blurHideTimer = null;
 
 function fmtDur(ms){
   const s = Math.round(ms/1000);
@@ -544,31 +607,21 @@ function fmtDur(ms){
   const r = s % 60;
   return `${m}:${String(r).padStart(2,'0')}`;
 }
-function crateTotalMs(){
-  return selected.reduce((acc, t) => acc + (t.duration_ms || 0), 0);
-}
-function updateCrateDurLabel(){
-  $("crateDurLabel").textContent = fmtDur(crateTotalMs());
-}
-
-function isAlreadySelected(trackId){
-  return selected.some(t => t.id === trackId);
-}
-
-function canAddTrack(track){
-  if (!track) return false;
-  if (track.duration_ms > CRATE_MAX_MS) return false; // a single track can't exceed cap
-  const nextTotal = crateTotalMs() + track.duration_ms;
-  return nextTotal <= CRATE_MAX_MS;
+function crateTotalMs(){ return selected.reduce((a,t)=>a+(t.duration_ms||0),0); }
+function updateCrateDurLabel(){ $("crateDurLabel").textContent = fmtDur(crateTotalMs()); }
+function isAlreadySelected(id){ return selected.some(t=>t.id===id); }
+function canAddTrack(t){
+  if(!t) return false;
+  if(t.duration_ms > CRATE_MAX_MS) return false;
+  return (crateTotalMs()+t.duration_ms) <= CRATE_MAX_MS;
 }
 
 function renderSelected(){
   $("selectedCount").textContent = String(selected.length);
   updateCrateDurLabel();
-
   const ol = $("selected");
   ol.innerHTML = "";
-  selected.forEach((t, idx) => {
+  selected.forEach((t, idx)=>{
     const li = document.createElement("li");
     li.className = "row";
     li.style.borderBottom = "1px solid #eee";
@@ -583,41 +636,35 @@ function renderSelected(){
         <button class="danger" data-act="remove">Remove</button>
       </div>
     `;
-    li.querySelector('[data-act="up"]').onclick = () => {
-      if (idx === 0) return;
-      const tmp = selected[idx-1]; selected[idx-1] = selected[idx]; selected[idx] = tmp;
-      renderSelected();
-      renderResults(lastSearchItems);
+    li.querySelector('[data-act="up"]').onclick = ()=>{
+      if(idx===0) return;
+      [selected[idx-1], selected[idx]] = [selected[idx], selected[idx-1]];
+      renderSelected(); renderResults(lastSearchItems);
     };
-    li.querySelector('[data-act="down"]').onclick = () => {
-      if (idx === selected.length-1) return;
-      const tmp = selected[idx+1]; selected[idx+1] = selected[idx]; selected[idx] = tmp;
-      renderSelected();
-      renderResults(lastSearchItems);
+    li.querySelector('[data-act="down"]').onclick = ()=>{
+      if(idx===selected.length-1) return;
+      [selected[idx+1], selected[idx]] = [selected[idx], selected[idx+1]];
+      renderSelected(); renderResults(lastSearchItems);
     };
-    li.querySelector('[data-act="remove"]').onclick = () => {
-      selected.splice(idx, 1);
-      renderSelected();
-      renderResults(lastSearchItems);
+    li.querySelector('[data-act="remove"]').onclick = ()=>{
+      selected.splice(idx,1);
+      renderSelected(); renderResults(lastSearchItems);
     };
     ol.appendChild(li);
   });
 }
 
-function clearResults(){
-  lastSearchItems = [];
-  $("results").innerHTML = "";
-}
+function clearResults(){ lastSearchItems=[]; $("results").innerHTML=""; }
 
 function renderResults(items){
   lastSearchItems = items || [];
   const root = $("results");
   root.innerHTML = "";
-  if (!items || !items.length) return;
+  if(!items || !items.length) return;
 
   const total = crateTotalMs();
 
-  items.forEach((t) => {
+  items.forEach((t)=>{
     const tooLong = t.duration_ms > CRATE_MAX_MS;
     const already = isAlreadySelected(t.id);
     const wouldExceed = !already && (total + t.duration_ms > CRATE_MAX_MS);
@@ -633,51 +680,44 @@ function renderResults(items){
         </small>
       </div>
       <div class="btnRow">
-        <button ${tooLong || already || wouldExceed ? "disabled" : ""}>
+        <button ${tooLong||already||wouldExceed ? "disabled":""}>
           ${already ? "Added" : (wouldExceed ? "Full" : "Add")}
         </button>
       </div>
     `;
-
-    row.querySelector("button").onclick = () => {
-      if (tooLong) return;
-      if (already) return;
-      if (!canAddTrack(t)) {
-        alert("Crate limit is 10:00 total. Remove something or pick a shorter track.");
+    row.querySelector("button").onclick = ()=>{
+      if(tooLong || already) return;
+      if(!canAddTrack(t)){
+        alert("Crate limit is 10:00 total.");
         return;
       }
       selected.push(t);
       renderSelected();
       renderResults(items);
     };
-
     root.appendChild(row);
   });
 }
 
-let searchTimer = null;
-let lastQuery = "";
-let blurHideTimer = null;
-
 async function doSearchAuto(q){
-  if (!spotifyToken()) {
+  if(!spotifyToken()){
     $("searchHint").textContent = "Login to Spotify to search.";
     clearResults();
     return;
   }
   q = q.trim();
-  if (q.length < 2) {
+  if(q.length < 2){
     $("searchHint").textContent = "Type at least 2 characters.";
     clearResults();
     return;
   }
-  if (q === lastQuery) return;
+  if(q === lastQuery) return;
   lastQuery = q;
 
   $("searchHint").textContent = "Searching…";
-  try {
+  try{
     const data = await spotifyGET(`/search?type=track&limit=20&q=${encodeURIComponent(q)}`);
-    const items = data.tracks.items.map(tr => ({
+    const items = data.tracks.items.map(tr=>({
       id: tr.id,
       uri: tr.uri,
       name: tr.name,
@@ -686,7 +726,7 @@ async function doSearchAuto(q){
     }));
     $("searchHint").textContent = `Results for: "${q}" (tap outside to hide)`;
     renderResults(items);
-  } catch (e) {
+  } catch(e){
     $("searchHint").textContent = "Search failed (check login).";
     console.error(e);
   }
@@ -694,36 +734,29 @@ async function doSearchAuto(q){
 
 function onSearchInput(){
   const q = $("searchBox").value;
-  if (searchTimer) clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => doSearchAuto(q), 250);
+  if(searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(()=>doSearchAuto(q), 250);
 }
-
-/* Hide results when leaving search bar, but allow tapping results */
 function onSearchBlur(){
-  if (blurHideTimer) clearTimeout(blurHideTimer);
-  blurHideTimer = setTimeout(() => {
+  if(blurHideTimer) clearTimeout(blurHideTimer);
+  blurHideTimer = setTimeout(()=>{
     clearResults();
     $("searchHint").textContent = "";
   }, 200);
 }
 function onSearchFocus(){
-  if (blurHideTimer) clearTimeout(blurHideTimer);
+  if(blurHideTimer) clearTimeout(blurHideTimer);
   blurHideTimer = null;
-  if (spotifyToken()) {
-    $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
-  }
+  if(spotifyToken()) $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
 }
 
 function saveCrate(){
   const name = $("crateName").value.trim();
-  if (!name) return alert("Enter a crate name.");
-  if (!selected.length) return alert("Add some tracks first.");
+  if(!name) return alert("Enter a crate name.");
+  if(!selected.length) return alert("Add some tracks first.");
 
   const total = crateTotalMs();
-  if (total > CRATE_MAX_MS) {
-    alert("Crate total exceeds 10:00. Remove tracks until it's under 10:00.");
-    return;
-  }
+  if(total > CRATE_MAX_MS) return alert("Crate total exceeds 10:00.");
 
   const crates = loadCrates();
   crates.unshift({
@@ -739,7 +772,7 @@ function saveCrate(){
   renderSelected();
   $("crateName").value = "";
   refreshCrates();
-  alert("Crate saved on this phone.");
+  alert("Crate saved.");
 }
 
 function refreshCrates(){
@@ -747,14 +780,14 @@ function refreshCrates(){
   const ul = $("crates");
   ul.innerHTML = "";
 
-  crates.forEach((c) => {
+  crates.forEach((c)=>{
     const li = document.createElement("li");
     li.className = "row";
     li.innerHTML = `
       <div style="max-width:70%;">
         <b>${c.name}</b>
         <span class="chip">${c.tracks.length} tracks</span>
-        <span class="chip">${fmtDur(c.total_ms || c.tracks.reduce((a,t)=>a+(t.duration_ms||0),0))}</span><br/>
+        <span class="chip">${fmtDur(c.total_ms || 0)}</span><br/>
         <small>${new Date(c.createdAt).toLocaleString()}</small>
       </div>
       <div class="btnRow">
@@ -764,8 +797,8 @@ function refreshCrates(){
       </div>
     `;
 
-    li.querySelector('[data-act="send"]').onclick = async () => {
-      if (!ble.connected) return alert("Connect BLE first.");
+    li.querySelector('[data-act="send"]').onclick = async ()=>{
+      if(!ble.connected) return alert("Connect BLE first.");
 
       showDlUI(true);
       setDlProgress(0, "Sending crate to Pi…");
@@ -774,29 +807,26 @@ function refreshCrates(){
 
       await bleWriteLine(`CRATE_BEGIN ${safe(c.name)}`);
       await bleWriteLine(`CRATE_TOTAL_MS ${c.total_ms || 0}`);
-      for (const t of c.tracks) {
+      for(const t of c.tracks){
         await bleWriteLine(`CRATE_TRACK ${safe(t.id)}|${t.duration_ms||0}|${safe(t.uri)}|${safe(t.name)}|${safe(t.artist)}`);
       }
       await bleWriteLine("CRATE_END");
 
       setDlProgress(0, "Starting SpotDL on Pi…");
       await bleWriteLine(`DL_START ${safe(c.name)}`);
-
-      // Progress will update from DL_MSG/DL_PCT
     };
 
-    li.querySelector('[data-act="load"]').onclick = () => {
+    li.querySelector('[data-act="load"]').onclick = ()=>{
       selected.length = 0;
-      c.tracks.forEach(t => selected.push(t));
+      c.tracks.forEach(t=>selected.push(t));
       renderSelected();
       $("crateName").value = c.name;
-      alert("Crate loaded into Current Playlist.");
+      alert("Crate loaded.");
     };
 
-    li.querySelector('[data-act="del"]').onclick = () => {
-      if (!confirm(`Delete crate "${c.name}"?`)) return;
-      const next = crates.filter(x => x.id !== c.id);
-      saveCrates(next);
+    li.querySelector('[data-act="del"]').onclick = ()=>{
+      if(!confirm(`Delete crate "${c.name}"?`)) return;
+      saveCrates(crates.filter(x=>x.id!==c.id));
       refreshCrates();
     };
 
@@ -805,66 +835,33 @@ function refreshCrates(){
 }
 /* ================================================================ */
 
-/* ======================== Wi-Fi actions ======================== */
-async function wifiScan(){
-  if (!ble.connected) return alert("Connect BLE first.");
-  wifiNets = [];
-  wifiRenderNets();
-  wifiSetState("scanning", "");
-  await bleWriteLine("WIFI_SCAN");
-}
-async function wifiJoin(){
-  if (!ble.connected) return alert("Connect BLE first.");
-  const ssid = $("wifiSsid").value;
-  const pwd = $("wifiPass").value;
-  if (!ssid) return alert("Choose a network SSID first.");
-  wifiSetState("connecting", "");
-  // format: WIFI_JOIN ssid|password
-  await bleWriteLine(`WIFI_JOIN ${ssid}|${pwd}`);
-}
-async function wifiStatus(){
-  if (!ble.connected) return alert("Connect BLE first.");
-  await bleWriteLine("WIFI_STATUS");
-}
-async function wifiOff(){
-  if (!ble.connected) return alert("Connect BLE first.");
-  await bleWriteLine("WIFI_OFF");
-}
-/* ================================================================ */
-
 /* ======================== Wire UI ======================== */
-$("bleConnectBtn").onclick = async () => {
-  try {
-    await bleConnect();
-  } catch (e) {
-    console.error("BLE connect error:", e);
-    alert("BLE connect error:\n" +
-      "name=" + (e?.name || "n/a") + "\n" +
-      "message=" + (e?.message || String(e)) + "\n" +
-      "code=" + (e?.code ?? "n/a"));
-  }
+$("bleConnectBtn").onclick = async ()=>{
+  try { await bleConnect(); }
+  catch(e){ safeAlertBleError(e); cleanupBleState(); $("bleConnectBtn").disabled = false; }
 };
-$("bleDisconnectBtn").onclick = () => bleDisconnect();
 
-$("statusBtn").onclick = () => statusOnce().catch(e => alert("STATUS error: " + (e?.message || e)));
-$("startPollBtn").onclick = () => startPoll();
-$("stopPollBtn").onclick = () => stopPoll();
+$("bleDisconnectBtn").onclick = ()=> bleDisconnect();
 
-$("wifiScanBtn").onclick = () => wifiScan().catch(e => alert("Wi-Fi scan error: " + (e?.message || e)));
-$("wifiJoinBtn").onclick = () => wifiJoin().catch(e => alert("Wi-Fi join error: " + (e?.message || e)));
-$("wifiStatusBtn").onclick = () => wifiStatus().catch(e => alert("Wi-Fi status error: " + (e?.message || e)));
-$("wifiOffBtn").onclick = () => wifiOff().catch(e => alert("Wi-Fi off error: " + (e?.message || e)));
+$("statusBtn").onclick = ()=> statusOnce().catch(e=> safeAlertBleError(e));
+$("startPollBtn").onclick = ()=> startPoll();
+$("stopPollBtn").onclick = ()=> stopPoll();
 
-$("spotifyLoginBtn").onclick = () => spotifyLogin().catch(e => alert("Spotify login error: " + (e?.message || e)));
-$("spotifyLogoutBtn").onclick = () => spotifyLogout();
+$("wifiScanBtn").onclick = ()=> wifiScan().catch(e=> safeAlertBleError(e));
+$("wifiJoinBtn").onclick = ()=> wifiJoin().catch(e=> safeAlertBleError(e));
+$("wifiStatusBtn").onclick = ()=> wifiStatus().catch(e=> safeAlertBleError(e));
+$("wifiOffBtn").onclick = ()=> wifiOff().catch(e=> safeAlertBleError(e));
+
+$("spotifyLoginBtn").onclick = ()=> spotifyLogin().catch(e=> alert("Spotify login error: "+(e?.message||e)));
+$("spotifyLogoutBtn").onclick = ()=> spotifyLogout();
 
 $("searchBox").addEventListener("input", onSearchInput);
 $("searchBox").addEventListener("blur", onSearchBlur);
 $("searchBox").addEventListener("focus", onSearchFocus);
 
-$("saveCrateBtn").onclick = () => saveCrate();
-$("refreshCratesBtn").onclick = () => refreshCrates();
-$("clearSelectedBtn").onclick = () => {
+$("saveCrateBtn").onclick = ()=> saveCrate();
+$("refreshCratesBtn").onclick = ()=> refreshCrates();
+$("clearSelectedBtn").onclick = ()=>{
   selected.length = 0;
   renderSelected();
   renderResults(lastSearchItems);
@@ -877,22 +874,37 @@ wifiRenderNets();
 renderSelected();
 refreshCrates();
 
-(async function boot(){
+(function boot(){
   $("env").textContent =
-    `secureContext=${window.isSecureContext} | navigator.bluetooth=${!!navigator.bluetooth} | redirect=${REDIRECT_URI}`;
+    `secureContext=${window.isSecureContext} | navigator.bluetooth=${!!navigator.bluetooth} | url=${location.href}`;
 
   const url = new URL(location.href);
   const code = url.searchParams.get("code");
-  if (code) {
-    try { await exchangeCodeForToken(code); }
-    catch(e){ alert("Spotify token exchange failed. Check Redirect URI + Client ID.\n" + e); }
+
+  // prevent “authorization code expired” loops
+  const usedCode = sessionStorage.getItem("spotify_used_code");
+  if(code && usedCode === code){
+    history.replaceState({}, document.title, REDIRECT_URI !== "CHANGE_ME" ? REDIRECT_URI : (location.origin + location.pathname));
   }
-  if (spotifyToken()) {
-    try { await loadMe(); } catch {}
-    $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
-  } else {
-    $("searchHint").textContent = "Login to Spotify to search.";
-  }
+
+  (async ()=>{
+    if(code && usedCode !== code){
+      sessionStorage.setItem("spotify_used_code", code);
+      try { await exchangeCodeForToken(code); }
+      catch(e){
+        sessionStorage.removeItem("spotify_used_code");
+        sessionStorage.removeItem("pkce_verifier");
+        alert("Spotify token exchange failed. Check Redirect URI + Client ID.\n" + (e?.message || e));
+      }
+    }
+
+    if(spotifyToken()){
+      try { await loadMe(); } catch {}
+      $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
+    } else {
+      $("searchHint").textContent = "Login to Spotify to search.";
+    }
+  })();
 })();
 </script>
 </body>
