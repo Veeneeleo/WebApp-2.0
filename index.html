@@ -2,911 +2,6 @@
 <html>
 <head>
   <meta charset="utf-8" />
-<<<<<<< HEAD
-  <title>BurnVinyl</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    :root {
-      --cream: #f8f5f0;
-      --warm-white: #faf8f5;
-      --charcoal: #2a2522;
-      --deep-brown: #3d3330;
-      --burgundy: #8b2635;
-      --deep-red: #a23545;
-      --warm-red: #c14554;
-      --gold: #d4a574;
-      --light-gold: #e6c9a0;
-      --border-subtle: #e0d5c7;
-      --text-primary: #2a2522;
-      --text-secondary: #6b5d54;
-      --text-muted: #9a8a7d;
-    }
-
-    body {
-      font-family: 'Crimson Text', serif;
-      background: var(--cream);
-      color: var(--text-primary);
-      min-height: 100vh;
-      padding-bottom: 100px;
-      overflow-x: hidden;
-    }
-
-    /* Subtle texture overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-image: 
-        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(42, 37, 34, 0.02) 2px, rgba(42, 37, 34, 0.02) 4px);
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.3;
-    }
-
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 100%;
-      padding: 0;
-    }
-
-    /* Header */
-    header {
-      background: linear-gradient(180deg, var(--warm-white) 0%, var(--cream) 100%);
-      padding: 32px 24px 24px;
-      border-bottom: 3px solid var(--burgundy);
-      box-shadow: 0 2px 12px rgba(139, 38, 53, 0.08);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(10px);
-    }
-
-    h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 42px;
-      font-weight: 900;
-      letter-spacing: -1px;
-      color: var(--burgundy);
-      margin-bottom: 8px;
-      text-align: center;
-    }
-
-    .tagline {
-      font-family: 'Crimson Text', serif;
-      font-size: 16px;
-      font-style: italic;
-      color: var(--text-secondary);
-      text-align: center;
-      letter-spacing: 0.5px;
-    }
-
-    /* Cards */
-    .card {
-      background: var(--warm-white);
-      border: 1px solid var(--border-subtle);
-      border-radius: 2px;
-      margin: 24px 16px;
-      padding: 28px 24px;
-      box-shadow: 
-        0 1px 3px rgba(42, 37, 34, 0.06),
-        0 4px 12px rgba(42, 37, 34, 0.04);
-      animation: cardSlideIn 0.6s ease-out;
-      position: relative;
-    }
-
-    @keyframes cardSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--burgundy), var(--deep-red), var(--warm-red));
-    }
-
-    .card h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--burgundy);
-      margin-bottom: 20px;
-      letter-spacing: -0.5px;
-    }
-
-    /* Buttons */
-    button {
-      font-family: 'Crimson Text', serif;
-      padding: 14px 24px;
-      border: none;
-      border-radius: 2px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      letter-spacing: 0.3px;
-    }
-
-    button::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
-
-    button:active::before {
-      width: 300px;
-      height: 300px;
-    }
-
-    .btn-primary {
-      background: var(--burgundy);
-      color: var(--warm-white);
-      box-shadow: 0 2px 8px rgba(139, 38, 53, 0.25);
-    }
-
-    .btn-primary:active {
-      transform: translateY(1px);
-      box-shadow: 0 1px 4px rgba(139, 38, 53, 0.2);
-    }
-
-    .btn-secondary {
-      background: var(--cream);
-      color: var(--text-primary);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .btn-secondary:active {
-      background: var(--border-subtle);
-      transform: translateY(1px);
-    }
-
-    .btn-success {
-      background: var(--deep-brown);
-      color: var(--warm-white);
-      box-shadow: 0 2px 8px rgba(61, 51, 48, 0.25);
-    }
-
-    .btn-danger {
-      background: var(--warm-red);
-      color: var(--warm-white);
-      box-shadow: 0 2px 8px rgba(193, 69, 84, 0.25);
-    }
-
-    button:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-
-    .btn-row button {
-      flex: 1;
-      min-width: 120px;
-    }
-
-    /* Input fields */
-    input, select {
-      font-family: 'Crimson Text', serif;
-      width: 100%;
-      padding: 14px 16px;
-      background: var(--cream);
-      border: 2px solid var(--border-subtle);
-      border-radius: 2px;
-      color: var(--text-primary);
-      font-size: 16px;
-      transition: all 0.3s ease;
-      margin-top: 12px;
-    }
-
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--burgundy);
-      box-shadow: 0 0 0 3px rgba(139, 38, 53, 0.1);
-    }
-
-    input::placeholder {
-      color: var(--text-muted);
-    }
-
-    /* Search */
-    .search-wrapper {
-      position: relative;
-      margin-bottom: 16px;
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      pointer-events: none;
-      margin-top: 6px;
-    }
-
-    input[type="text"] {
-      padding-left: 48px;
-    }
-
-    .search-hint {
-      font-size: 14px;
-      color: var(--text-secondary);
-      margin-top: 12px;
-      min-height: 20px;
-      font-style: italic;
-    }
-
-    /* Results */
-    .results-list {
-      margin-top: 16px;
-    }
-
-    .track-item {
-      background: var(--cream);
-      border: 1px solid var(--border-subtle);
-      border-left: 4px solid var(--burgundy);
-      border-radius: 2px;
-      padding: 18px;
-      margin-bottom: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      transition: all 0.3s ease;
-      animation: trackSlideIn 0.4s ease-out;
-    }
-
-    @keyframes trackSlideIn {
-      from {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .track-item:active {
-      transform: scale(0.98);
-      background: var(--border-subtle);
-    }
-
-    .track-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .track-name {
-      font-weight: 700;
-      font-size: 18px;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .track-meta {
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-
-    .track-item button {
-      flex-shrink: 0;
-      min-width: 90px;
-      padding: 10px 18px;
-    }
-
-    .duration-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      background: var(--warm-white);
-      border: 1px solid var(--border-subtle);
-      border-radius: 2px;
-      font-size: 13px;
-      color: var(--burgundy);
-      font-weight: 600;
-    }
-
-    .warning-badge {
-      color: var(--warm-red);
-      border-color: var(--warm-red);
-    }
-
-    /* Crate list */
-    .crate-counter {
-      display: inline-flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
-      padding: 16px 20px;
-      background: var(--cream);
-      border-radius: 2px;
-      border: 1px solid var(--border-subtle);
-    }
-
-    .counter-label {
-      font-size: 13px;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      font-weight: 600;
-    }
-
-    .counter-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--burgundy);
-      font-family: 'Playfair Display', serif;
-    }
-
-    .selected-tracks {
-      list-style: none;
-      margin: 20px 0;
-    }
-
-    .selected-tracks li {
-      background: var(--cream);
-      border: 1px solid var(--border-subtle);
-      border-left: 4px solid var(--burgundy);
-      border-radius: 2px;
-      padding: 18px;
-      margin-bottom: 14px;
-      animation: trackSlideIn 0.4s ease-out;
-    }
-
-    .track-controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .track-controls button {
-      flex: 1;
-      padding: 10px 14px;
-      font-size: 14px;
-    }
-
-    /* Log */
-    .log-container {
-      background: var(--cream);
-      border: 1px solid var(--border-subtle);
-      border-radius: 2px;
-      padding: 14px;
-      max-height: 200px;
-      overflow-y: auto;
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-top: 16px;
-      font-family: 'Crimson Text', serif;
-      line-height: 1.8;
-    }
-
-    .log-container::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .log-container::-webkit-scrollbar-track {
-      background: var(--warm-white);
-    }
-
-    .log-container::-webkit-scrollbar-thumb {
-      background: var(--border-subtle);
-      border-radius: 4px;
-    }
-
-    /* Collapsible sections */
-    .collapsible-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-      padding: 10px 0;
-    }
-
-    .collapsible-header::after {
-      content: '▼';
-      font-size: 14px;
-      color: var(--text-muted);
-      transition: transform 0.3s ease;
-    }
-
-    .collapsible-header.collapsed::after {
-      transform: rotate(-90deg);
-    }
-
-    .collapsible-content {
-      max-height: 2000px;
-      overflow: hidden;
-      transition: max-height 0.3s ease, opacity 0.3s ease;
-    }
-
-    .collapsible-content.collapsed {
-      max-height: 0;
-      opacity: 0;
-    }
-
-    /* Saved crates */
-    .crate-list {
-      list-style: none;
-    }
-
-    .crate-list-item {
-      background: var(--cream);
-      border: 1px solid var(--border-subtle);
-      border-radius: 2px;
-      padding: 20px;
-      margin-bottom: 16px;
-      animation: trackSlideIn 0.4s ease-out;
-    }
-
-    .crate-header {
-      margin-bottom: 16px;
-    }
-
-    .crate-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 10px;
-      font-family: 'Playfair Display', serif;
-    }
-
-    .crate-badges {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      padding: 6px 12px;
-      border-radius: 2px;
-      font-size: 13px;
-      font-weight: 600;
-      background: var(--warm-white);
-      color: var(--text-secondary);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .badge-tracks {
-      color: var(--burgundy);
-      border-color: var(--burgundy);
-    }
-
-    .badge-duration {
-      color: var(--deep-brown);
-      border-color: var(--deep-brown);
-    }
-
-    .crate-date {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-top: 10px;
-      font-style: italic;
-    }
-
-    .crate-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    .crate-actions button {
-      flex: 1;
-      font-size: 14px;
-      padding: 12px 16px;
-    }
-
-    /* Empty states */
-    .empty-state {
-      text-align: center;
-      padding: 48px 24px;
-      color: var(--text-muted);
-    }
-
-    .empty-state-icon {
-      font-size: 56px;
-      margin-bottom: 20px;
-      opacity: 0.4;
-    }
-
-    /* Utility classes */
-    .hidden {
-      display: none !important;
-    }
-
-    .mt-16 {
-      margin-top: 16px;
-    }
-
-    .mb-16 {
-      margin-bottom: 16px;
-    }
-
-    /* Link styling */
-    a {
-      color: var(--burgundy);
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-
-    a:active {
-      color: var(--deep-red);
-    }
-
-    /* Section divider */
-    .section-number {
-      display: inline-block;
-      width: 32px;
-      height: 32px;
-      background: var(--burgundy);
-      border-radius: 50%;
-      text-align: center;
-      line-height: 32px;
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--warm-white);
-      margin-right: 12px;
-      font-family: 'Playfair Display', serif;
-    }
-
-    /* Toast notifications */
-    .toast {
-      position: fixed;
-      bottom: 120px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: var(--warm-white);
-      border: 2px solid var(--burgundy);
-      border-radius: 2px;
-      padding: 18px 28px;
-      box-shadow: 0 8px 32px rgba(42, 37, 34, 0.2);
-      z-index: 1000;
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      font-weight: 600;
-    }
-
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
-
-    .toast.error {
-      border-color: var(--warm-red);
-      color: var(--warm-red);
-    }
-
-    .toast.success {
-      border-color: var(--deep-brown);
-      color: var(--deep-brown);
-    }
-
-    /* Wi-Fi network list */
-    .network-option {
-      padding: 14px;
-      background: var(--cream);
-    }
-
-    /* Fixed bottom progress bar */
-    .progress-bar-fixed {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--warm-white);
-      border-top: 2px solid var(--burgundy);
-      padding: 16px 20px;
-      box-shadow: 0 -4px 20px rgba(42, 37, 34, 0.1);
-      z-index: 200;
-      transform: translateY(100%);
-      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .progress-bar-fixed.visible {
-      transform: translateY(0);
-    }
-
-    .download-status {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 10px;
-      color: var(--burgundy);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: var(--cream);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 8px;
-      border: 1px solid var(--border-subtle);
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--burgundy), var(--deep-red));
-      border-radius: 3px;
-      transition: width 0.3s ease;
-    }
-
-    .download-message {
-      font-size: 13px;
-      color: var(--text-secondary);
-      font-style: italic;
-    }
-
-    /* Better mobile spacing */
-    @media (max-width: 768px) {
-      .card {
-        margin: 16px 12px;
-        padding: 20px 16px;
-      }
-
-      h1 {
-        font-size: 32px;
-      }
-
-      .btn-row button {
-        min-width: 100px;
-        font-size: 14px;
-        padding: 12px 16px;
-      }
-    }
-
-    /* Apple-style NFC Modal */
-    .nfc-modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-    }
-
-    .nfc-modal-overlay.visible {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .nfc-modal {
-      background: var(--warm-white);
-      border-radius: 16px;
-      width: 90%;
-      max-width: 340px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      overflow: hidden;
-      transform: scale(0.9);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .nfc-modal-overlay.visible .nfc-modal {
-      transform: scale(1);
-    }
-
-    .nfc-modal-content {
-      padding: 32px 24px;
-      text-align: center;
-    }
-
-    .nfc-icon {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 20px;
-      background: linear-gradient(135deg, var(--burgundy), var(--deep-red));
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      animation: nfcPulse 2s ease-in-out infinite;
-    }
-
-    @keyframes nfcPulse {
-      0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(139, 38, 53, 0.4);
-      }
-      50% {
-        transform: scale(1.05);
-        box-shadow: 0 0 0 20px rgba(139, 38, 53, 0);
-      }
-    }
-
-    .nfc-icon.scanning {
-      animation: nfcScan 1.5s linear infinite;
-    }
-
-    @keyframes nfcScan {
-      0% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.1);
-      }
-      100% {
-        transform: scale(1);
-      }
-    }
-
-    .nfc-icon.complete {
-      background: linear-gradient(135deg, var(--deep-brown), #2a2522);
-      animation: nfcComplete 0.5s ease-out;
-    }
-
-    @keyframes nfcComplete {
-      0% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.2);
-      }
-      100% {
-        transform: scale(1);
-      }
-    }
-
-    .nfc-modal h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 12px;
-    }
-
-    .nfc-modal p {
-      font-size: 15px;
-      color: var(--text-secondary);
-      margin-bottom: 24px;
-      line-height: 1.5;
-    }
-
-    .nfc-modal-buttons {
-      display: flex;
-      gap: 12px;
-    }
-
-    .nfc-modal-buttons button {
-      flex: 1;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <h1 id="logoTitle" style="cursor: pointer; user-select: none;">BurnVinyl</h1>
-    </header>
-
-    <!-- Advanced Options (BLE/WiFi) - Modal Overlay -->
-    <div id="advancedOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: flex-start; justify-content: center; padding-top: 60px; overflow-y: auto;">
-      <div id="bleAdvancedContent" style="background: var(--warm-white); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 28px; width: 90%; max-width: 500px; box-shadow: 0 8px 32px rgba(42, 37, 34, 0.25); margin-bottom: 60px; position: relative;">
-        <button id="closeAdvanced" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 4px 8px; line-height: 1;">×</button>
-        
-        <h3 style="font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--burgundy); margin-bottom: 20px;">Bluetooth & Wi-Fi</h3>
-        
-        <div class="btn-row" style="margin-bottom: 20px;">
-          <button id="bleConnectBtn" class="btn-primary">Connect to Pi</button>
-          <button id="bleDisconnectBtn" class="btn-danger" disabled>Disconnect</button>
-        </div>
-
-        <select id="bleMode">
-          <option value="uuid" selected>Filter by UART UUID</option>
-          <option value="name">Filter by Name (DVS)</option>
-        </select>
-
-        <div class="btn-row">
-          <button id="statusBtn" class="btn-secondary" disabled>Check Status</button>
-          <button id="startPollBtn" class="btn-secondary" disabled>Start Poll</button>
-          <button id="stopPollBtn" class="btn-secondary" disabled>Stop Poll</button>
-        </div>
-
-        <div class="log-container" id="bleLog"></div>
-
-        <!-- Wi-Fi Setup -->
-        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-subtle);">
-          <h3 style="font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--burgundy); margin-bottom: 16px;">Wi-Fi Setup</h3>
-          
-          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; font-style: italic;">
-            Connect your Pi to Wi-Fi for downloads. You can disable Wi-Fi during playback.
-          </p>
-
-          <div class="btn-row">
-            <button id="wifiScanBtn" class="btn-secondary" disabled>Scan Networks</button>
-            <button id="wifiStatusBtn" class="btn-secondary" disabled>Check Status</button>
-            <button id="wifiOffBtn" class="btn-danger" disabled>Turn Off</button>
-          </div>
-
-          <select id="wifiSsid" disabled>
-            <option value="">(scan for networks first)</option>
-          </select>
-
-          <input id="wifiPass" type="password" placeholder="Wi-Fi password (leave blank if open)" disabled />
-
-          <div class="btn-row">
-            <button id="wifiJoinBtn" class="btn-success" disabled>Connect to Network</button>
-          </div>
-
-          <div style="margin-top: 20px; padding: 16px; background: var(--cream); border-radius: 2px; font-size: 14px; border: 1px solid var(--border-subtle);">
-            <div style="color: var(--text-secondary); margin-bottom: 6px;">
-              Status: <span id="wifiState" style="color: var(--burgundy); font-weight: 600;">unknown</span>
-            </div>
-            <div style="color: var(--text-secondary);">
-              IP: <span id="wifiIp" style="color: var(--burgundy); font-weight: 600;">-</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Search -->
-    <div class="card">
-      <h2><span class="section-number">1</span> Search Music</h2>
-      
-      <div class="search-wrapper">
-        <div class="search-icon">🔍</div>
-        <input id="searchBox" type="text" placeholder="Search for tracks on YouTube..." />
-      </div>
-      <div class="search-hint" id="searchHint">Type to search tracks</div>
-
-      <div class="crate-counter">
-        <div>
-          <div class="counter-label">Crate Limit</div>
-          <div style="font-size: 14px; color: var(--text-muted); margin-top: 6px;">10:00 max</div>
-=======
   <title>DVS Crates - YouTube Music</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
@@ -948,7 +43,6 @@
         <div>
           <b>Bluetooth</b><br/>
           <small>iOS: Bluefy + HTTPS required.</small>
->>>>>>> parent of 186e709 (Finished????)
         </div>
         <div class="btnRow">
           <button id="bleConnectBtn">Connect</button>
@@ -956,34 +50,11 @@
         </div>
       </div>
 
-<<<<<<< HEAD
-      <div class="results-list" id="results"></div>
-    </div>
-
-    <!-- Current Crate -->
-    <div class="card">
-      <h2><span class="section-number">2</span> Current Playlist</h2>
-      
-      <div class="crate-counter">
-=======
       <div class="row">
->>>>>>> parent of 186e709 (Finished????)
         <div>
           <b>Connection mode</b><br/>
           <small>If your Pi doesn't show in the picker, switch to Name mode.</small>
         </div>
-<<<<<<< HEAD
-        <div style="margin-left: auto;">
-          <button id="clearSelectedBtn" class="btn-danger" style="padding: 10px 18px; font-size: 14px;">Clear All</button>
-        </div>
-      </div>
-
-      <ol class="selected-tracks" id="selected"></ol>
-
-      <input id="crateName" type="text" placeholder="Name your crate (e.g., Friday Night Set)" />
-      
-
-=======
         <div class="btnRow">
           <select id="bleMode">
             <option value="uuid" selected>Filter by UART UUID</option>
@@ -1003,7 +74,6 @@
           <button id="stopPollBtn" disabled>Stop Poll</button>
         </div>
       </div>
->>>>>>> parent of 186e709 (Finished????)
 
       <div class="mono" id="bleLog" style="white-space:pre-wrap; max-height:260px; overflow:auto;"></div>
       <div class="muted"><small id="env"></small></div>
@@ -1024,17 +94,6 @@
         </div>
       </div>
 
-<<<<<<< HEAD
-    <!-- Saved Crates -->
-    <div class="card">
-      <h2><span class="section-number">3</span> Your Crates</h2>
-      
-      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; font-style: italic;">
-        Saved locally on your device
-      </p>
-
-      <button id="refreshCratesBtn" class="btn-secondary" style="width: 100%; margin-bottom: 20px;">Refresh List</button>
-=======
       <div class="row" style="border-bottom:none;">
         <div style="width:100%;">
           <div class="muted hint"><small>Networks:</small></div>
@@ -1044,7 +103,6 @@
 
           <div class="hint"></div>
           <input id="wifiPass" type="password" class="w520" placeholder="Wi-Fi password (blank if open)" disabled />
->>>>>>> parent of 186e709 (Finished????)
 
           <div class="btnRow" style="margin-top:10px;">
             <button id="wifiJoinBtn" disabled>Join</button>
@@ -1061,25 +119,6 @@
     </section>
   </div>
 
-<<<<<<< HEAD
-  <!-- NFC Modal -->
-  <div class="nfc-modal-overlay" id="nfcModal">
-    <div class="nfc-modal">
-      <div class="nfc-modal-content">
-        <div class="nfc-icon" id="nfcIcon">📱</div>
-        <h3 id="nfcTitle">Ready to Burn</h3>
-        <p id="nfcMessage">Tap your vinyl record to begin burning the crate</p>
-        <div class="nfc-modal-buttons">
-          <button class="btn-secondary" id="nfcCancelBtn">Cancel</button>
-          <button class="btn-primary" id="nfcScanBtn">Scan NFC</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast notification -->
-  <div class="toast" id="toast"></div>
-=======
   <div class="grid">
     <section class="card">
       <h2>3) YouTube Music Login + Search</h2>
@@ -1154,7 +193,6 @@
 
     <ul id="crates"></ul>
   </section>
->>>>>>> parent of 186e709 (Finished????)
 
   <!-- Fixed bottom progress bar -->
   <div class="progress-bar-fixed" id="dlRow">
@@ -1181,38 +219,6 @@ const UART_TX_UUID      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // notify
 
 const $ = (id) => document.getElementById(id);
 
-<<<<<<< HEAD
-function logBle(msg) { 
-  const log = $("bleLog");
-  const entry = document.createElement('div');
-  entry.textContent = msg;
-  entry.style.animation = 'trackSlideIn 0.3s ease-out';
-  log.insertBefore(entry, log.firstChild);
-}
-
-function showToast(msg, type = 'info') {
-  const toast = $("toast");
-  toast.textContent = msg;
-  toast.className = `toast ${type}`;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-const enc = (s) => new TextEncoder().encode(s);
-const dec = (u8) => new TextDecoder().decode(u8);
-
-/* ======================== Download UI ======================== */
-function showDlUI(show) {
-  const dlRow = $("dlRow");
-  if (show) {
-    dlRow.classList.add('visible');
-  } else {
-    dlRow.classList.remove('visible');
-  }
-}
-
-function setDlProgress(pct, msg) {
-=======
 function logBle(msg) { $("bleLog").textContent = msg + "\n" + $("bleLog").textContent; }
 function setVinylPill({ ready, lock }) {
   const pill = $("vinylPill");
@@ -1227,7 +233,6 @@ const dec = (u8)=> new TextDecoder().decode(u8);
 /* ======================== Download UI ======================== */
 function showDlUI(show){ $("dlRow").style.display = show ? "" : "none"; }
 function setDlProgress(pct, msg){
->>>>>>> parent of 186e709 (Finished????)
   pct = Math.max(0, Math.min(100, (pct|0)));
   $("dlProg").value = pct;
   $("dlPct").textContent = pct + "%";
@@ -1299,14 +304,8 @@ function onBleText(text){
       showDlUI(true);
       setDlProgress(parseInt($("dlProg").value,10)||0, line.slice(7));
     } else if (line === "DL_DONE") {
-<<<<<<< HEAD
-      setDlProgress(100, "Download complete!");
-      showToast("Download complete!", 'success');
-      setTimeout(()=>showDlUI(false), 3000);
-=======
       setDlProgress(100, "Done.");
       setTimeout(()=>showDlUI(false), 1500);
->>>>>>> parent of 186e709 (Finished????)
     } else if (line.startsWith("DL_ERR ")) {
       showDlUI(true);
       setDlProgress(parseInt($("dlProg").value,10)||0, "Error: " + line.slice(7));
@@ -1521,70 +520,7 @@ async function youtubeGetVideoDetails(videoIds){
 }
 /* ================================================================ */
 
-<<<<<<< HEAD
-/* ======================== NFC Modal ======================== */
-function showNfcModal() {
-  const modal = $("nfcModal");
-  const icon = $("nfcIcon");
-  const title = $("nfcTitle");
-  const message = $("nfcMessage");
-  const scanBtn = $("nfcScanBtn");
-  
-  // Reset to initial state
-  icon.className = "nfc-icon";
-  icon.textContent = "📱";
-  title.textContent = "Ready to Burn";
-  message.textContent = "Tap your vinyl record to begin burning the crate";
-  scanBtn.style.display = "";
-  
-  modal.classList.add('visible');
-}
-
-function hideNfcModal() {
-  const modal = $("nfcModal");
-  modal.classList.remove('visible');
-}
-
-async function scanNfc() {
-  const icon = $("nfcIcon");
-  const title = $("nfcTitle");
-  const message = $("nfcMessage");
-  const scanBtn = $("nfcScanBtn");
-  const cancelBtn = $("nfcCancelBtn");
-  
-  // Change to scanning state
-  icon.className = "nfc-icon scanning";
-  icon.textContent = "📡";
-  title.textContent = "Scanning...";
-  message.textContent = "Hold your vinyl record near the device";
-  scanBtn.disabled = true;
-  cancelBtn.disabled = true;
-  
-  // Wait 3 seconds
-  await new Promise(resolve => setTimeout(resolve, 3000));
-  
-  // Change to complete state
-  icon.className = "nfc-icon complete";
-  icon.textContent = "✓";
-  title.textContent = "Complete!";
-  message.textContent = "Vinyl tag detected. Starting burn process...";
-  
-  // Wait a moment to show success
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Hide modal
-  hideNfcModal();
-  
-  // Reset button states
-  scanBtn.disabled = false;
-  cancelBtn.disabled = false;
-}
-/* ================================================================ */
-
-/* ======================== Search & Crate ======================== */
-=======
 /* ======================== Auto search + crate cap ======================== */
->>>>>>> parent of 186e709 (Finished????)
 const selected = [];
 let lastSearchItems = [];
 let searchTimer = null;
@@ -1801,30 +737,16 @@ function refreshCrates(){
         <span class="chip">${fmtDur(c.total_ms || 0)}</span><br/>
         <small>${new Date(c.createdAt).toLocaleString()}</small>
       </div>
-<<<<<<< HEAD
-      <div class="crate-actions">
-        <button class="btn-success" data-act="send" ${ble.connected ? "" : "disabled"}>Burn Vinyl</button>
-        <button class="btn-secondary" data-act="load">Load</button>
-        <button class="btn-danger" data-act="del">Delete</button>
-=======
       <div class="btnRow">
         <button data-act="send" ${ble.connected ? "" : "disabled"}>Send + Download</button>
         <button data-act="load">Load</button>
         <button class="danger" data-act="del">Delete</button>
->>>>>>> parent of 186e709 (Finished????)
       </div>
     `;
 
     li.querySelector('[data-act="send"]').onclick = async ()=>{
       if(!ble.connected) return alert("Connect BLE first.");
 
-<<<<<<< HEAD
-      // Store the crate for later use after NFC scan
-      window.currentCrateToBurn = c;
-      
-      // Show NFC modal
-      showNfcModal();
-=======
       showDlUI(true);
       setDlProgress(0, "Sending crate to Pi…");
 
@@ -1839,7 +761,6 @@ function refreshCrates(){
 
       setDlProgress(0, "Starting yt-dlp on Pi…");
       await bleWriteLine(`DL_START ${safe(c.name)}`);
->>>>>>> parent of 186e709 (Finished????)
     };
 
     li.querySelector('[data-act="load"]').onclick = ()=>{
@@ -1861,23 +782,6 @@ function refreshCrates(){
 }
 /* ================================================================ */
 
-<<<<<<< HEAD
-/* ======================== Advanced Options Modal ======================== */
-function showAdvancedOptions() {
-  const overlay = document.getElementById('advancedOverlay');
-  overlay.style.display = 'flex';
-  document.body.style.overflow = 'hidden'; // Prevent background scrolling
-}
-
-function hideAdvancedOptions() {
-  const overlay = document.getElementById('advancedOverlay');
-  overlay.style.display = 'none';
-  document.body.style.overflow = ''; // Restore background scrolling
-}
-/* ================================================================ */
-
-=======
->>>>>>> parent of 186e709 (Finished????)
 /* ======================== Wire UI ======================== */
 $("bleConnectBtn").onclick = async ()=>{
   try { await bleConnect(); }
