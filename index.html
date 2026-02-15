@@ -2,11 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Veeneeleo</title>
+  <title>BurnVinyl</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -16,31 +16,31 @@
     }
 
     :root {
-      --bg-dark: #0a0a0f;
-      --bg-card: #16161f;
-      --bg-elevated: #1f1f2e;
-      --accent-vinyl: #ff3366;
-      --accent-neon: #00ffcc;
-      --accent-blue: #3366ff;
-      --text-primary: #ffffff;
-      --text-secondary: #a0a0b8;
-      --text-muted: #6a6a7f;
-      --border: #2a2a3f;
-      --success: #00ff88;
-      --warning: #ffaa00;
-      --danger: #ff3366;
+      --cream: #f8f5f0;
+      --warm-white: #faf8f5;
+      --charcoal: #2a2522;
+      --deep-brown: #3d3330;
+      --burgundy: #8b2635;
+      --deep-red: #a23545;
+      --warm-red: #c14554;
+      --gold: #d4a574;
+      --light-gold: #e6c9a0;
+      --border-subtle: #e0d5c7;
+      --text-primary: #2a2522;
+      --text-secondary: #6b5d54;
+      --text-muted: #9a8a7d;
     }
 
     body {
-      font-family: 'Space Mono', monospace;
-      background: var(--bg-dark);
+      font-family: 'Crimson Text', serif;
+      background: var(--cream);
       color: var(--text-primary);
       min-height: 100vh;
-      padding-bottom: 80px;
+      padding-bottom: 100px;
       overflow-x: hidden;
     }
 
-    /* Animated background grid */
+    /* Subtle texture overlay */
     body::before {
       content: '';
       position: fixed;
@@ -48,18 +48,11 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: 
-        linear-gradient(90deg, var(--border) 1px, transparent 1px),
-        linear-gradient(0deg, var(--border) 1px, transparent 1px);
-      background-size: 50px 50px;
-      opacity: 0.15;
+      background-image: 
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(42, 37, 34, 0.02) 2px, rgba(42, 37, 34, 0.02) 4px);
+      pointer-events: none;
       z-index: 0;
-      animation: gridPulse 20s ease-in-out infinite;
-    }
-
-    @keyframes gridPulse {
-      0%, 100% { opacity: 0.15; }
-      50% { opacity: 0.08; }
+      opacity: 0.3;
     }
 
     .container {
@@ -71,10 +64,10 @@
 
     /* Header */
     header {
-      background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
-      padding: 20px;
-      border-bottom: 2px solid var(--accent-vinyl);
-      box-shadow: 0 4px 20px rgba(255, 51, 102, 0.2);
+      background: linear-gradient(180deg, var(--warm-white) 0%, var(--cream) 100%);
+      padding: 32px 24px 24px;
+      border-bottom: 3px solid var(--burgundy);
+      box-shadow: 0 2px 12px rgba(139, 38, 53, 0.08);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -82,98 +75,36 @@
     }
 
     h1 {
-      font-family: 'Orbitron', monospace;
-      font-size: 24px;
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
       font-weight: 900;
-      letter-spacing: 2px;
-      background: linear-gradient(135deg, var(--accent-vinyl), var(--accent-neon));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 12px;
-      animation: titleGlow 3s ease-in-out infinite;
+      letter-spacing: -1px;
+      color: var(--burgundy);
+      margin-bottom: 8px;
+      text-align: center;
     }
 
-    @keyframes titleGlow {
-      0%, 100% { filter: brightness(1); }
-      50% { filter: brightness(1.3); }
-    }
-
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      animation: statusPulse 2s ease-in-out infinite;
-    }
-
-    @keyframes statusPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    .status-pill::before {
-      content: '';
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      animation: dotPulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes dotPulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.5); opacity: 0.7; }
-    }
-
-    .status-pill.ready {
-      background: rgba(0, 255, 136, 0.15);
-      border: 2px solid var(--success);
-      color: var(--success);
-    }
-
-    .status-pill.ready::before {
-      background: var(--success);
-      box-shadow: 0 0 10px var(--success);
-    }
-
-    .status-pill.locked {
-      background: rgba(255, 170, 0, 0.15);
-      border: 2px solid var(--warning);
-      color: var(--warning);
-    }
-
-    .status-pill.locked::before {
-      background: var(--warning);
-      box-shadow: 0 0 10px var(--warning);
-    }
-
-    .status-pill.disconnected {
-      background: rgba(255, 51, 102, 0.15);
-      border: 2px solid var(--danger);
-      color: var(--danger);
-    }
-
-    .status-pill.disconnected::before {
-      background: var(--danger);
-      box-shadow: 0 0 10px var(--danger);
+    .tagline {
+      font-family: 'Crimson Text', serif;
+      font-size: 16px;
+      font-style: italic;
+      color: var(--text-secondary);
+      text-align: center;
+      letter-spacing: 0.5px;
     }
 
     /* Cards */
     .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      margin: 16px;
-      padding: 20px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      animation: cardSlideIn 0.5s ease-out;
+      background: var(--warm-white);
+      border: 1px solid var(--border-subtle);
+      border-radius: 2px;
+      margin: 24px 16px;
+      padding: 28px 24px;
+      box-shadow: 
+        0 1px 3px rgba(42, 37, 34, 0.06),
+        0 4px 12px rgba(42, 37, 34, 0.04);
+      animation: cardSlideIn 0.6s ease-out;
       position: relative;
-      overflow: hidden;
     }
 
     @keyframes cardSlideIn {
@@ -193,35 +124,32 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent-vinyl), var(--accent-neon), var(--accent-blue));
-      opacity: 0.5;
+      height: 4px;
+      background: linear-gradient(90deg, var(--burgundy), var(--deep-red), var(--warm-red));
     }
 
     .card h2 {
-      font-family: 'Orbitron', monospace;
-      font-size: 16px;
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
       font-weight: 700;
-      color: var(--accent-neon);
-      margin-bottom: 16px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      color: var(--burgundy);
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
     }
 
     /* Buttons */
     button {
-      font-family: 'Space Mono', monospace;
-      padding: 12px 20px;
+      font-family: 'Crimson Text', serif;
+      padding: 14px 24px;
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 700;
+      border-radius: 2px;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
     }
 
     button::before {
@@ -243,37 +171,37 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent-vinyl), #ff5588);
-      color: white;
-      box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+      background: var(--burgundy);
+      color: var(--warm-white);
+      box-shadow: 0 2px 8px rgba(139, 38, 53, 0.25);
     }
 
     .btn-primary:active {
-      transform: scale(0.95);
-      box-shadow: 0 2px 8px rgba(255, 51, 102, 0.3);
+      transform: translateY(1px);
+      box-shadow: 0 1px 4px rgba(139, 38, 53, 0.2);
     }
 
     .btn-secondary {
-      background: var(--bg-elevated);
+      background: var(--cream);
       color: var(--text-primary);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-subtle);
     }
 
     .btn-secondary:active {
-      background: var(--bg-dark);
-      transform: scale(0.95);
+      background: var(--border-subtle);
+      transform: translateY(1px);
     }
 
     .btn-success {
-      background: linear-gradient(135deg, var(--success), #00dd77);
-      color: var(--bg-dark);
-      box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+      background: var(--deep-brown);
+      color: var(--warm-white);
+      box-shadow: 0 2px 8px rgba(61, 51, 48, 0.25);
     }
 
     .btn-danger {
-      background: linear-gradient(135deg, var(--danger), #ff5588);
-      color: white;
-      box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+      background: var(--warm-red);
+      color: var(--warm-white);
+      box-shadow: 0 2px 8px rgba(193, 69, 84, 0.25);
     }
 
     button:disabled {
@@ -284,34 +212,34 @@
 
     .btn-row {
       display: flex;
-      gap: 8px;
+      gap: 12px;
       flex-wrap: wrap;
-      margin-top: 12px;
+      margin-top: 16px;
     }
 
     .btn-row button {
       flex: 1;
-      min-width: 100px;
+      min-width: 120px;
     }
 
     /* Input fields */
     input, select {
-      font-family: 'Space Mono', monospace;
+      font-family: 'Crimson Text', serif;
       width: 100%;
       padding: 14px 16px;
-      background: var(--bg-dark);
-      border: 2px solid var(--border);
-      border-radius: 8px;
+      background: var(--cream);
+      border: 2px solid var(--border-subtle);
+      border-radius: 2px;
       color: var(--text-primary);
-      font-size: 14px;
+      font-size: 16px;
       transition: all 0.3s ease;
-      margin-top: 8px;
+      margin-top: 12px;
     }
 
     input:focus, select:focus {
       outline: none;
-      border-color: var(--accent-neon);
-      box-shadow: 0 0 0 3px rgba(0, 255, 204, 0.1);
+      border-color: var(--burgundy);
+      box-shadow: 0 0 0 3px rgba(139, 38, 53, 0.1);
     }
 
     input::placeholder {
@@ -321,7 +249,7 @@
     /* Search */
     .search-wrapper {
       position: relative;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .search-icon {
@@ -331,35 +259,37 @@
       transform: translateY(-50%);
       color: var(--text-muted);
       pointer-events: none;
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
     input[type="text"] {
-      padding-left: 45px;
+      padding-left: 48px;
     }
 
     .search-hint {
-      font-size: 12px;
+      font-size: 14px;
       color: var(--text-secondary);
-      margin-top: 8px;
-      min-height: 18px;
+      margin-top: 12px;
+      min-height: 20px;
+      font-style: italic;
     }
 
     /* Results */
     .results-list {
-      margin-top: 12px;
+      margin-top: 16px;
     }
 
     .track-item {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
+      background: var(--cream);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--burgundy);
+      border-radius: 2px;
+      padding: 18px;
+      margin-bottom: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       transition: all 0.3s ease;
       animation: trackSlideIn 0.4s ease-out;
     }
@@ -377,7 +307,7 @@
 
     .track-item:active {
       transform: scale(0.98);
-      background: var(--bg-card);
+      background: var(--border-subtle);
     }
 
     .track-info {
@@ -387,161 +317,121 @@
 
     .track-name {
       font-weight: 700;
+      font-size: 18px;
       color: var(--text-primary);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .track-meta {
-      font-size: 12px;
+      font-size: 14px;
       color: var(--text-secondary);
     }
 
     .track-item button {
       flex-shrink: 0;
-      min-width: 80px;
-      padding: 10px 16px;
+      min-width: 90px;
+      padding: 10px 18px;
     }
 
     .duration-badge {
       display: inline-block;
-      padding: 2px 8px;
-      background: var(--bg-dark);
-      border-radius: 4px;
-      font-size: 11px;
-      color: var(--accent-neon);
-      font-weight: 700;
+      padding: 3px 10px;
+      background: var(--warm-white);
+      border: 1px solid var(--border-subtle);
+      border-radius: 2px;
+      font-size: 13px;
+      color: var(--burgundy);
+      font-weight: 600;
     }
 
     .warning-badge {
-      color: var(--warning);
+      color: var(--warm-red);
+      border-color: var(--warm-red);
     }
 
     /* Crate list */
     .crate-counter {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding: 12px 16px;
-      background: var(--bg-elevated);
-      border-radius: 12px;
-      border: 1px solid var(--border);
+      gap: 16px;
+      margin-bottom: 20px;
+      padding: 16px 20px;
+      background: var(--cream);
+      border-radius: 2px;
+      border: 1px solid var(--border-subtle);
     }
 
     .counter-label {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--text-secondary);
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      font-weight: 600;
     }
 
     .counter-value {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 700;
-      color: var(--accent-vinyl);
-      font-family: 'Orbitron', monospace;
+      color: var(--burgundy);
+      font-family: 'Playfair Display', serif;
     }
 
     .selected-tracks {
       list-style: none;
-      margin: 16px 0;
+      margin: 20px 0;
     }
 
     .selected-tracks li {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent-vinyl);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 12px;
+      background: var(--cream);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--burgundy);
+      border-radius: 2px;
+      padding: 18px;
+      margin-bottom: 14px;
       animation: trackSlideIn 0.4s ease-out;
     }
 
     .track-controls {
       display: flex;
-      gap: 8px;
-      margin-top: 12px;
+      gap: 10px;
+      margin-top: 14px;
     }
 
     .track-controls button {
       flex: 1;
-      padding: 8px 12px;
-      font-size: 12px;
-    }
-
-    /* Download progress */
-    .download-container {
-      background: linear-gradient(135deg, rgba(0, 255, 204, 0.1), rgba(51, 102, 255, 0.1));
-      border: 2px solid var(--accent-neon);
-      border-radius: 12px;
-      padding: 20px;
-      margin: 16px 0;
-      animation: downloadPulse 2s ease-in-out infinite;
-    }
-
-    @keyframes downloadPulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 204, 0.3); }
-      50% { box-shadow: 0 0 30px rgba(0, 255, 204, 0.5); }
-    }
-
-    .download-status {
+      padding: 10px 14px;
       font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: var(--accent-neon);
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: var(--bg-dark);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent-neon), var(--accent-blue));
-      border-radius: 4px;
-      transition: width 0.3s ease;
-      box-shadow: 0 0 10px var(--accent-neon);
-    }
-
-    .download-message {
-      font-size: 12px;
-      color: var(--text-secondary);
     }
 
     /* Log */
     .log-container {
-      background: var(--bg-dark);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
+      background: var(--cream);
+      border: 1px solid var(--border-subtle);
+      border-radius: 2px;
+      padding: 14px;
       max-height: 200px;
       overflow-y: auto;
-      font-size: 11px;
+      font-size: 13px;
       color: var(--text-secondary);
-      margin-top: 12px;
-      font-family: 'Space Mono', monospace;
-      line-height: 1.6;
+      margin-top: 16px;
+      font-family: 'Crimson Text', serif;
+      line-height: 1.8;
     }
 
     .log-container::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
     }
 
     .log-container::-webkit-scrollbar-track {
-      background: var(--bg-dark);
+      background: var(--warm-white);
     }
 
     .log-container::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 3px;
+      background: var(--border-subtle);
+      border-radius: 4px;
     }
 
     /* Collapsible sections */
@@ -551,12 +441,12 @@
       align-items: center;
       cursor: pointer;
       user-select: none;
-      padding: 8px 0;
+      padding: 10px 0;
     }
 
     .collapsible-header::after {
       content: '▼';
-      font-size: 12px;
+      font-size: 14px;
       color: var(--text-muted);
       transition: transform 0.3s ease;
     }
@@ -582,77 +472,82 @@
     }
 
     .crate-list-item {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
+      background: var(--cream);
+      border: 1px solid var(--border-subtle);
+      border-radius: 2px;
+      padding: 20px;
+      margin-bottom: 16px;
       animation: trackSlideIn 0.4s ease-out;
     }
 
     .crate-header {
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .crate-title {
-      font-size: 16px;
+      font-size: 20px;
       font-weight: 700;
       color: var(--text-primary);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      font-family: 'Playfair Display', serif;
     }
 
     .crate-badges {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
     .badge {
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 700;
-      background: var(--bg-dark);
+      padding: 6px 12px;
+      border-radius: 2px;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--warm-white);
       color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
     }
 
     .badge-tracks {
-      color: var(--accent-vinyl);
+      color: var(--burgundy);
+      border-color: var(--burgundy);
     }
 
     .badge-duration {
-      color: var(--accent-neon);
+      color: var(--deep-brown);
+      border-color: var(--deep-brown);
     }
 
     .crate-date {
-      font-size: 11px;
+      font-size: 13px;
       color: var(--text-muted);
-      margin-top: 8px;
+      margin-top: 10px;
+      font-style: italic;
     }
 
     .crate-actions {
       display: flex;
-      gap: 8px;
-      margin-top: 12px;
+      gap: 10px;
+      margin-top: 16px;
     }
 
     .crate-actions button {
       flex: 1;
-      font-size: 12px;
-      padding: 10px 14px;
+      font-size: 14px;
+      padding: 12px 16px;
     }
 
     /* Empty states */
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
+      padding: 48px 24px;
       color: var(--text-muted);
     }
 
     .empty-state-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.3;
+      font-size: 56px;
+      margin-bottom: 20px;
+      opacity: 0.4;
     }
 
     /* Utility classes */
@@ -670,44 +565,46 @@
 
     /* Link styling */
     a {
-      color: var(--accent-neon);
+      color: var(--burgundy);
       text-decoration: none;
       transition: color 0.3s ease;
     }
 
     a:active {
-      color: var(--accent-blue);
+      color: var(--deep-red);
     }
 
     /* Section divider */
     .section-number {
       display: inline-block;
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(135deg, var(--accent-vinyl), var(--accent-neon));
+      width: 32px;
+      height: 32px;
+      background: var(--burgundy);
       border-radius: 50%;
       text-align: center;
-      line-height: 28px;
-      font-weight: 900;
-      font-size: 14px;
-      color: var(--bg-dark);
-      margin-right: 8px;
+      line-height: 32px;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--warm-white);
+      margin-right: 12px;
+      font-family: 'Playfair Display', serif;
     }
 
     /* Toast notifications */
     .toast {
       position: fixed;
-      bottom: 100px;
+      bottom: 120px;
       left: 50%;
       transform: translateX(-50%) translateY(100px);
-      background: var(--bg-elevated);
-      border: 2px solid var(--accent-neon);
-      border-radius: 12px;
-      padding: 16px 24px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      background: var(--warm-white);
+      border: 2px solid var(--burgundy);
+      border-radius: 2px;
+      padding: 18px 28px;
+      box-shadow: 0 8px 32px rgba(42, 37, 34, 0.2);
       z-index: 1000;
       opacity: 0;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
     }
 
     .toast.show {
@@ -716,34 +613,88 @@
     }
 
     .toast.error {
-      border-color: var(--danger);
+      border-color: var(--warm-red);
+      color: var(--warm-red);
     }
 
     .toast.success {
-      border-color: var(--success);
+      border-color: var(--deep-brown);
+      color: var(--deep-brown);
     }
 
     /* Wi-Fi network list */
     .network-option {
-      padding: 12px;
-      background: var(--bg-dark);
+      padding: 14px;
+      background: var(--cream);
+    }
+
+    /* Fixed bottom progress bar */
+    .progress-bar-fixed {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--warm-white);
+      border-top: 2px solid var(--burgundy);
+      padding: 16px 20px;
+      box-shadow: 0 -4px 20px rgba(42, 37, 34, 0.1);
+      z-index: 200;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .progress-bar-fixed.visible {
+      transform: translateY(0);
+    }
+
+    .download-status {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--burgundy);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--cream);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--burgundy), var(--deep-red));
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .download-message {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-style: italic;
     }
 
     /* Better mobile spacing */
     @media (max-width: 768px) {
       .card {
-        margin: 12px 8px;
-        padding: 16px;
+        margin: 16px 12px;
+        padding: 20px 16px;
       }
 
       h1 {
-        font-size: 20px;
+        font-size: 32px;
       }
 
       .btn-row button {
-        min-width: 80px;
-        font-size: 12px;
-        padding: 10px 14px;
+        min-width: 100px;
+        font-size: 14px;
+        padding: 12px 16px;
       }
     }
   </style>
@@ -751,8 +702,8 @@
 <body>
   <div class="container">
     <header>
-      <h1>VEENEELEO</h1>
-      <div id="vinylPill" class="status-pill disconnected">VINYL: NO LOCK</div>
+      <h1>BurnVinyl</h1>
+      <div class="tagline">Premium Analog Audio Service</div>
     </header>
 
     <!-- BLE Connection -->
@@ -765,7 +716,7 @@
       </div>
 
       <div class="collapsible-header collapsed" id="bleAdvancedHeader">
-        <span style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase;">Advanced Options</span>
+        <span style="color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Advanced Options</span>
       </div>
       
       <div class="collapsible-content collapsed" id="bleAdvancedContent">
@@ -788,7 +739,7 @@
     <div class="card">
       <h2><span class="section-number">2</span> Wi-Fi Setup</h2>
       
-      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">
+      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; font-style: italic;">
         Connect your Pi to Wi-Fi for downloads. You can disable Wi-Fi during playback.
       </p>
 
@@ -808,12 +759,12 @@
         <button id="wifiJoinBtn" class="btn-success" disabled>Connect to Network</button>
       </div>
 
-      <div style="margin-top: 16px; padding: 12px; background: var(--bg-elevated); border-radius: 8px; font-size: 12px;">
-        <div style="color: var(--text-secondary);">
-          Status: <span id="wifiState" style="color: var(--accent-neon);">unknown</span>
+      <div style="margin-top: 20px; padding: 16px; background: var(--cream); border-radius: 2px; font-size: 14px; border: 1px solid var(--border-subtle);">
+        <div style="color: var(--text-secondary); margin-bottom: 6px;">
+          Status: <span id="wifiState" style="color: var(--burgundy); font-weight: 600;">unknown</span>
         </div>
-        <div style="color: var(--text-secondary); margin-top: 4px;">
-          IP: <span id="wifiIp" style="color: var(--accent-neon);">-</span>
+        <div style="color: var(--text-secondary);">
+          IP: <span id="wifiIp" style="color: var(--burgundy); font-weight: 600;">-</span>
         </div>
       </div>
     </div>
@@ -831,7 +782,7 @@
       <div class="crate-counter">
         <div>
           <div class="counter-label">Crate Limit</div>
-          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">10:00 max</div>
+          <div style="font-size: 14px; color: var(--text-muted); margin-top: 6px;">10:00 max</div>
         </div>
         <div style="margin-left: auto; text-align: right;">
           <div class="counter-label">Current</div>
@@ -842,22 +793,9 @@
       <div class="results-list" id="results"></div>
     </div>
 
-    <!-- Download Progress -->
-    <div id="dlRow" class="card hidden">
-      <h2><span class="section-number">4</span> Download Progress</h2>
-      
-      <div class="download-container">
-        <div class="download-status">Downloading: <span id="dlPct">0%</span></div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="dlProg" style="width: 0%"></div>
-        </div>
-        <div class="download-message" id="dlMsg">Starting download...</div>
-      </div>
-    </div>
-
     <!-- Current Crate -->
     <div class="card">
-      <h2><span class="section-number">5</span> Current Playlist</h2>
+      <h2><span class="section-number">4</span> Current Playlist</h2>
       
       <div class="crate-counter">
         <div>
@@ -865,7 +803,7 @@
           <div class="counter-value" id="selectedCount">0</div>
         </div>
         <div style="margin-left: auto;">
-          <button id="clearSelectedBtn" class="btn-danger" style="padding: 8px 16px; font-size: 12px;">Clear All</button>
+          <button id="clearSelectedBtn" class="btn-danger" style="padding: 10px 18px; font-size: 14px;">Clear All</button>
         </div>
       </div>
 
@@ -873,8 +811,8 @@
 
       <input id="crateName" type="text" placeholder="Name your crate (e.g., Friday Night Set)" />
       
-      <input id="crateRfid" type="text" placeholder="Vinyl RFID code (optional)" style="margin-top: 12px;" />
-      <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+      <input id="crateRfid" type="text" placeholder="Vinyl RFID code (optional)" style="margin-top: 14px;" />
+      <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px; font-style: italic;">
         💿 Associate this crate with a physical vinyl's RFID tag
       </div>
 
@@ -885,13 +823,13 @@
 
     <!-- Saved Crates -->
     <div class="card">
-      <h2><span class="section-number">6</span> Your Crates</h2>
+      <h2><span class="section-number">5</span> Your Crates</h2>
       
-      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">
+      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; font-style: italic;">
         Saved locally on your device
       </p>
 
-      <button id="refreshCratesBtn" class="btn-secondary" style="width: 100%; margin-bottom: 16px;">Refresh List</button>
+      <button id="refreshCratesBtn" class="btn-secondary" style="width: 100%; margin-bottom: 20px;">Refresh List</button>
 
       <ul class="crate-list" id="crates"></ul>
     </div>
@@ -899,6 +837,18 @@
 
   <!-- Toast notification -->
   <div class="toast" id="toast"></div>
+
+  <!-- Fixed bottom progress bar -->
+  <div class="progress-bar-fixed" id="dlRow">
+    <div class="download-status">
+      <span>Downloading</span>
+      <span id="dlPct" style="font-family: 'Playfair Display', serif;">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="dlProg" style="width: 0%"></div>
+    </div>
+    <div class="download-message" id="dlMsg">Starting download...</div>
+  </div>
 
 <script>
 /* ======================== CHANGE ME (YouTube) ======================== */
@@ -930,26 +880,17 @@ function showToast(msg, type = 'info') {
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-function setVinylPill({ ready, lock }) {
-  const pill = $("vinylPill");
-  if (ready) {
-    pill.className = "status-pill ready";
-    pill.textContent = "VINYL: READY";
-  } else if (lock) {
-    pill.className = "status-pill locked";
-    pill.textContent = "VINYL: LOCKED";
-  } else {
-    pill.className = "status-pill disconnected";
-    pill.textContent = "VINYL: NO LOCK";
-  }
-}
-
 const enc = (s) => new TextEncoder().encode(s);
 const dec = (u8) => new TextDecoder().decode(u8);
 
 /* ======================== Download UI ======================== */
 function showDlUI(show) {
-  $("dlRow").classList.toggle('hidden', !show);
+  const dlRow = $("dlRow");
+  if (show) {
+    dlRow.classList.add('visible');
+  } else {
+    dlRow.classList.remove('visible');
+  }
 }
 
 function setDlProgress(pct, msg) {
@@ -1018,7 +959,6 @@ function onBleText(text) {
     else if (line.startsWith("LOCK ")) ble.lastStatus.lock = line.endsWith("1");
     else if (line.startsWith("POS_MS ")) ble.lastStatus.posMs = parseInt(line.slice(7), 10) || 0;
     else if (line.startsWith("RATE ")) ble.lastStatus.rate = parseFloat(line.slice(5)) || 0;
-    else if (line === ".") setVinylPill({ ready: ble.lastStatus.ready, lock: ble.lastStatus.lock });
 
     else if (line.startsWith("DL_PCT ")) {
       showDlUI(true);
@@ -1029,7 +969,7 @@ function onBleText(text) {
     } else if (line === "DL_DONE") {
       setDlProgress(100, "Download complete!");
       showToast("Download complete!", 'success');
-      setTimeout(()=>showDlUI(false), 2000);
+      setTimeout(()=>showDlUI(false), 3000);
     } else if (line.startsWith("DL_ERR ")) {
       showDlUI(true);
       const err = line.slice(7);
@@ -1098,7 +1038,6 @@ function cleanupBleState() {
   ble.rx = null;
   ble.tx = null;
   setBleUi(false);
-  setVinylPill({ready: false, lock: false});
   refreshCrates();
 }
 
