@@ -92,123 +92,8 @@
           <button id="wifiStatusBtn" disabled>Status</button>
           <button id="wifiOffBtn" disabled>Wi-Fi Off</button>
         </div>
-<<<<<<< HEAD
       </div>
 
-      <div class="row" style="border-bottom:none;">
-        <div style="width:100%;">
-          <div class="muted hint"><small>Networks:</small></div>
-          <select id="wifiSsid" class="w520" disabled>
-            <option value="">(scan first)</option>
-          </select>
-
-          <div class="hint"></div>
-          <input id="wifiPass" type="password" class="w520" placeholder="Wi-Fi password (blank if open)" disabled />
-
-          <div class="btnRow" style="margin-top:10px;">
-            <button id="wifiJoinBtn" disabled>Join</button>
-          </div>
-
-          <div class="muted hint">
-            <small>
-              State: <span id="wifiState">unknown</span>
-              &nbsp; | &nbsp; IP: <span id="wifiIp">-</span>
-            </small>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <div class="grid">
-    <section class="card">
-      <h2>3) YouTube Music Login + Search</h2>
-
-      <div class="row" style="border-bottom:none;">
-        <div style="width:100%;">
-          <input id="searchBox" type="text" placeholder="Type to search tracks…" class="w520" />
-          <div class="muted hint"><small id="searchHint"></small></div>
-          <div class="muted hint">
-            <small><b>Crate cap:</b> total ≤ 10:00. Current crate: <span id="crateDurLabel">0:00</span></small>
-          </div>
-        </div>
-      </div>
-
-      <div id="results"></div>
-    </section>
-
-    <section class="card">
-      <h2>4) Download progress (yt-dlp on Pi)</h2>
-
-      <div class="row" id="dlRow" style="display:none; border-bottom:none;">
-        <div style="width:100%;">
-          <b>Downloading on Pi…</b> <span class="chip" id="dlPct">0%</span><br/>
-          <progress id="dlProg" value="0" max="100"></progress>
-          <div class="muted"><small id="dlMsg"></small></div>
-        </div>
-      </div>
-
-      <div class="muted tiny">
-        <small>
-          From Pi notifications: DL_MSG / DL_PCT / DL_DONE / DL_ERR.
-        </small>
-      </div>
-    </section>
-  </div>
-
-  <section class="card">
-    <h2>5) Current Playlist (Crate)</h2>
-
-    <div class="row">
-      <div>
-        <b>Selected tracks</b> <span class="chip" id="selectedCount">0</span><br/>
-        <small>Crate duration must stay ≤ 10:00 total.</small>
-      </div>
-      <div class="btnRow">
-        <button id="clearSelectedBtn">Clear</button>
-=======
->>>>>>> parent of 186e709 (Finished????)
-      </div>
-
-<<<<<<< HEAD
-    <ol id="selected"></ol>
-
-    <div class="row" style="border-bottom:none;">
-      <input id="crateName" type="text" placeholder="Crate name (e.g., My Set 1)" class="w520" />
-      <div class="btnRow">
-        <button id="saveCrateBtn">Save Crate</button>
-      </div>
-    </div>
-  </section>
-
-  <section class="card">
-    <h2>6) Saved Crates</h2>
-
-    <div class="row">
-      <div>
-        <b>Your crates</b><br/>
-        <small>Stored in localStorage on your phone.</small>
-      </div>
-      <div class="btnRow">
-        <button id="refreshCratesBtn">Refresh</button>
-      </div>
-    </div>
-
-    <ul id="crates"></ul>
-  </section>
-
-  <!-- Fixed bottom progress bar -->
-  <div class="progress-bar-fixed" id="dlRow">
-    <div class="download-status">
-      <span>Downloading</span>
-      <span id="dlPct" style="font-family: 'Playfair Display', serif;">0%</span>
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="dlProg" style="width: 0%"></div>
-    </div>
-  </div>
-
-=======
       <div class="row" style="border-bottom:none;">
         <div style="width:100%;">
           <div class="muted hint"><small>Networks:</small></div>
@@ -309,7 +194,6 @@
     <ul id="crates"></ul>
   </section>
 
->>>>>>> parent of 186e709 (Finished????)
 <script>
 /* ======================== CHANGE ME (YouTube) ======================== */
 const YOUTUBE_API_KEY = "AIzaSyAcahPuv_d4f1GS3PkA2HBVfE6TryHeeMM";  // <- your YouTube Data API v3 key
