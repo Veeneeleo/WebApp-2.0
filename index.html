@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
+<<<<<<< HEAD
   <title>BurnVinyl</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -905,13 +906,57 @@
         <div>
           <div class="counter-label">Crate Limit</div>
           <div style="font-size: 14px; color: var(--text-muted); margin-top: 6px;">10:00 max</div>
+=======
+  <title>DVS Crates - YouTube Music</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 16px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .pill { padding:6px 10px; border-radius:999px; background:#eee; }
+    .good{ background:#d6ffe0; } .warn{ background:#fff2c9; } .bad{ background:#ffd6d6; }
+    .card { border:1px solid #ddd; border-radius:12px; padding:12px; margin:12px 0; }
+    .row { display:flex; gap:10px; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid #eee; }
+    button,input,select { padding:10px 12px; border-radius:10px; border:1px solid #ccc; background:#fff; }
+    button:disabled { opacity:0.5; }
+    input[type="text"], input[type="password"] { width:min(520px,100%); }
+    small { opacity:0.7; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12px; }
+    .grid { display:grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .muted { opacity: 0.75; }
+    .btnRow { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .chip { display:inline-block; padding:2px 8px; border-radius:999px; background:#f3f3f3; font-size:12px; }
+    .danger { border-color:#f3b3b3; }
+    .hint { margin-top:6px; }
+    progress { width:100%; height:18px; }
+    .tiny { font-size: 11px; }
+    .split { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .w520 { width:min(520px,100%); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DVS Crates - YouTube Music</h1>
+    <div id="vinylPill" class="pill">VINYL: unknown</div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>1) Connect to Raspberry Pi (BLE)</h2>
+
+      <div class="row">
+        <div>
+          <b>Bluetooth</b><br/>
+          <small>iOS: Bluefy + HTTPS required.</small>
+>>>>>>> parent of 186e709 (Finished????)
         </div>
-        <div style="margin-left: auto; text-align: right;">
-          <div class="counter-label">Current</div>
-          <div class="counter-value" id="crateDurLabel">0:00</div>
+        <div class="btnRow">
+          <button id="bleConnectBtn">Connect</button>
+          <button id="bleDisconnectBtn" disabled>Disconnect</button>
         </div>
       </div>
 
+<<<<<<< HEAD
       <div class="results-list" id="results"></div>
     </div>
 
@@ -920,10 +965,14 @@
       <h2><span class="section-number">2</span> Current Playlist</h2>
       
       <div class="crate-counter">
+=======
+      <div class="row">
+>>>>>>> parent of 186e709 (Finished????)
         <div>
-          <div class="counter-label">Tracks</div>
-          <div class="counter-value" id="selectedCount">0</div>
+          <b>Connection mode</b><br/>
+          <small>If your Pi doesn't show in the picker, switch to Name mode.</small>
         </div>
+<<<<<<< HEAD
         <div style="margin-left: auto;">
           <button id="clearSelectedBtn" class="btn-danger" style="padding: 10px 18px; font-size: 14px;">Clear All</button>
         </div>
@@ -934,12 +983,48 @@
       <input id="crateName" type="text" placeholder="Name your crate (e.g., Friday Night Set)" />
       
 
-
-      <div class="btn-row">
-        <button id="saveCrateBtn" class="btn-success">Save Crate</button>
+=======
+        <div class="btnRow">
+          <select id="bleMode">
+            <option value="uuid" selected>Filter by UART UUID</option>
+            <option value="name">Filter by Name Prefix (DVS)</option>
+          </select>
+        </div>
       </div>
-    </div>
 
+      <div class="row">
+        <div>
+          <b>Status</b><br/>
+          <small>Polls STATUS from Pi → updates VINYL pill.</small>
+        </div>
+        <div class="btnRow">
+          <button id="statusBtn" disabled>STATUS</button>
+          <button id="startPollBtn" disabled>Start Poll</button>
+          <button id="stopPollBtn" disabled>Stop Poll</button>
+        </div>
+      </div>
+>>>>>>> parent of 186e709 (Finished????)
+
+      <div class="mono" id="bleLog" style="white-space:pre-wrap; max-height:260px; overflow:auto;"></div>
+      <div class="muted"><small id="env"></small></div>
+    </section>
+
+    <section class="card">
+      <h2>2) Wi-Fi on Pi (via BLE)</h2>
+
+      <div class="row">
+        <div>
+          <b>Scan + Join</b><br/>
+          <small>Only needed for yt-dlp downloads. Turn Wi-Fi off during play if you want.</small>
+        </div>
+        <div class="btnRow">
+          <button id="wifiScanBtn" disabled>Scan</button>
+          <button id="wifiStatusBtn" disabled>Status</button>
+          <button id="wifiOffBtn" disabled>Wi-Fi Off</button>
+        </div>
+      </div>
+
+<<<<<<< HEAD
     <!-- Saved Crates -->
     <div class="card">
       <h2><span class="section-number">3</span> Your Crates</h2>
@@ -949,11 +1034,34 @@
       </p>
 
       <button id="refreshCratesBtn" class="btn-secondary" style="width: 100%; margin-bottom: 20px;">Refresh List</button>
+=======
+      <div class="row" style="border-bottom:none;">
+        <div style="width:100%;">
+          <div class="muted hint"><small>Networks:</small></div>
+          <select id="wifiSsid" class="w520" disabled>
+            <option value="">(scan first)</option>
+          </select>
 
-      <ul class="crate-list" id="crates"></ul>
-    </div>
+          <div class="hint"></div>
+          <input id="wifiPass" type="password" class="w520" placeholder="Wi-Fi password (blank if open)" disabled />
+>>>>>>> parent of 186e709 (Finished????)
+
+          <div class="btnRow" style="margin-top:10px;">
+            <button id="wifiJoinBtn" disabled>Join</button>
+          </div>
+
+          <div class="muted hint">
+            <small>
+              State: <span id="wifiState">unknown</span>
+              &nbsp; | &nbsp; IP: <span id="wifiIp">-</span>
+            </small>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
+<<<<<<< HEAD
   <!-- NFC Modal -->
   <div class="nfc-modal-overlay" id="nfcModal">
     <div class="nfc-modal">
@@ -971,6 +1079,82 @@
 
   <!-- Toast notification -->
   <div class="toast" id="toast"></div>
+=======
+  <div class="grid">
+    <section class="card">
+      <h2>3) YouTube Music Login + Search</h2>
+
+      <div class="row" style="border-bottom:none;">
+        <div style="width:100%;">
+          <input id="searchBox" type="text" placeholder="Type to search tracks…" class="w520" />
+          <div class="muted hint"><small id="searchHint"></small></div>
+          <div class="muted hint">
+            <small><b>Crate cap:</b> total ≤ 10:00. Current crate: <span id="crateDurLabel">0:00</span></small>
+          </div>
+        </div>
+      </div>
+
+      <div id="results"></div>
+    </section>
+
+    <section class="card">
+      <h2>4) Download progress (yt-dlp on Pi)</h2>
+
+      <div class="row" id="dlRow" style="display:none; border-bottom:none;">
+        <div style="width:100%;">
+          <b>Downloading on Pi…</b> <span class="chip" id="dlPct">0%</span><br/>
+          <progress id="dlProg" value="0" max="100"></progress>
+          <div class="muted"><small id="dlMsg"></small></div>
+        </div>
+      </div>
+
+      <div class="muted tiny">
+        <small>
+          From Pi notifications: DL_MSG / DL_PCT / DL_DONE / DL_ERR.
+        </small>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>5) Current Playlist (Crate)</h2>
+
+    <div class="row">
+      <div>
+        <b>Selected tracks</b> <span class="chip" id="selectedCount">0</span><br/>
+        <small>Crate duration must stay ≤ 10:00 total.</small>
+      </div>
+      <div class="btnRow">
+        <button id="clearSelectedBtn">Clear</button>
+      </div>
+    </div>
+
+    <ol id="selected"></ol>
+
+    <div class="row" style="border-bottom:none;">
+      <input id="crateName" type="text" placeholder="Crate name (e.g., My Set 1)" class="w520" />
+      <div class="btnRow">
+        <button id="saveCrateBtn">Save Crate</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>6) Saved Crates</h2>
+
+    <div class="row">
+      <div>
+        <b>Your crates</b><br/>
+        <small>Stored in localStorage on your phone.</small>
+      </div>
+      <div class="btnRow">
+        <button id="refreshCratesBtn">Refresh</button>
+      </div>
+    </div>
+
+    <ul id="crates"></ul>
+  </section>
+>>>>>>> parent of 186e709 (Finished????)
 
   <!-- Fixed bottom progress bar -->
   <div class="progress-bar-fixed" id="dlRow">
@@ -985,18 +1169,19 @@
 
 <script>
 /* ======================== CHANGE ME (YouTube) ======================== */
-const YOUTUBE_API_KEY = "AIzaSyAcahPuv_d4f1GS3PkA2HBVfE6TryHeeMM";
-const CRATE_MAX_MS = 10 * 60 * 1000;
+const YOUTUBE_API_KEY = "AIzaSyAcahPuv_d4f1GS3PkA2HBVfE6TryHeeMM";  // <- your YouTube Data API v3 key
+const CRATE_MAX_MS = 10 * 60 * 1000;     // <= 10 minutes TOTAL
 /* ================================================================ */
 
 /* ======================== BLE Nordic UART UUIDs ======================== */
 const UART_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-const UART_RX_UUID      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
-const UART_TX_UUID      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+const UART_RX_UUID      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // write
+const UART_TX_UUID      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // notify
 /* ================================================================ */
 
 const $ = (id) => document.getElementById(id);
 
+<<<<<<< HEAD
 function logBle(msg) { 
   const log = $("bleLog");
   const entry = document.createElement('div');
@@ -1027,38 +1212,49 @@ function showDlUI(show) {
 }
 
 function setDlProgress(pct, msg) {
+=======
+function logBle(msg) { $("bleLog").textContent = msg + "\n" + $("bleLog").textContent; }
+function setVinylPill({ ready, lock }) {
+  const pill = $("vinylPill");
+  if (ready) { pill.className="pill good"; pill.textContent="VINYL: READY"; }
+  else if (lock) { pill.className="pill warn"; pill.textContent="VINYL: LOCKED"; }
+  else { pill.className="pill bad"; pill.textContent="VINYL: NO LOCK"; }
+}
+
+const enc = (s)=> new TextEncoder().encode(s);
+const dec = (u8)=> new TextDecoder().decode(u8);
+
+/* ======================== Download UI ======================== */
+function showDlUI(show){ $("dlRow").style.display = show ? "" : "none"; }
+function setDlProgress(pct, msg){
+>>>>>>> parent of 186e709 (Finished????)
   pct = Math.max(0, Math.min(100, (pct|0)));
-  $("dlProg").style.width = pct + "%";
+  $("dlProg").value = pct;
   $("dlPct").textContent = pct + "%";
   $("dlMsg").textContent = msg || "";
 }
 /* ================================================================ */
 
 /* ======================== Local crate storage ======================== */
-const LS_KEY = "veeneeleo_crates_v1";
-function loadCrates() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }
-  catch { return []; }
-}
-function saveCrates(crates) {
-  localStorage.setItem(LS_KEY, JSON.stringify(crates));
-}
+const LS_KEY = "dvs_crates_youtube_v1";
+function loadCrates(){ try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; } }
+function saveCrates(crates){ localStorage.setItem(LS_KEY, JSON.stringify(crates)); }
 /* ================================================================ */
 
 /* ======================== BLE ======================== */
 let ble = {
-  device: null,
-  server: null,
-  svc: null,
-  rx: null,
-  tx: null,
-  connected: false,
-  notifyBuf: "",
-  pollTimer: null,
-  lastStatus: {ready: false, lock: false, posMs: 0, rate: 1.0},
+  device:null,
+  server:null,
+  svc:null,
+  rx:null,
+  tx:null,
+  connected:false,
+  notifyBuf:"",
+  pollTimer:null,
+  lastStatus:{ready:false, lock:false, posMs:0, rate:1.0},
 };
 
-function setBleUi(connected) {
+function setBleUi(connected){
   $("bleConnectBtn").disabled = connected;
   $("bleDisconnectBtn").disabled = !connected;
   $("statusBtn").disabled = !connected;
@@ -1073,48 +1269,56 @@ function setBleUi(connected) {
   $("wifiJoinBtn").disabled = !connected;
 }
 
-function safeAlertBleError(e) {
+function safeAlertBleError(e){
   console.error("BLE error:", e);
   const name = e?.name || "n/a";
   const msg = e?.message || String(e);
-  showToast(`BLE Error: ${msg}`, 'error');
+  const code = (e?.code ?? "n/a");
+  alert(`BLE error:\nname=${name}\nmessage=${msg}\ncode=${code}`);
 }
 
-function onBleText(text) {
+function onBleText(text){
   ble.notifyBuf += text;
   let idx;
-  while((idx = ble.notifyBuf.indexOf("\n")) >= 0) {
+  while((idx = ble.notifyBuf.indexOf("\n")) >= 0){
     const line = ble.notifyBuf.slice(0, idx).trim();
     ble.notifyBuf = ble.notifyBuf.slice(idx + 1);
     if(!line) continue;
 
+    // dvs_core STATUS parsing
     if (line.startsWith("READY ")) ble.lastStatus.ready = line.endsWith("1");
     else if (line.startsWith("LOCK ")) ble.lastStatus.lock = line.endsWith("1");
     else if (line.startsWith("POS_MS ")) ble.lastStatus.posMs = parseInt(line.slice(7), 10) || 0;
     else if (line.startsWith("RATE ")) ble.lastStatus.rate = parseFloat(line.slice(5)) || 0;
 
+    // yt-dlp progress parsing
     else if (line.startsWith("DL_PCT ")) {
       showDlUI(true);
       setDlProgress(parseInt(line.slice(7),10)||0, $("dlMsg").textContent);
     } else if (line.startsWith("DL_MSG ")) {
       showDlUI(true);
-      setDlProgress(parseInt($("dlProg").style.width)||0, line.slice(7));
+      setDlProgress(parseInt($("dlProg").value,10)||0, line.slice(7));
     } else if (line === "DL_DONE") {
+<<<<<<< HEAD
       setDlProgress(100, "Download complete!");
       showToast("Download complete!", 'success');
       setTimeout(()=>showDlUI(false), 3000);
+=======
+      setDlProgress(100, "Done.");
+      setTimeout(()=>showDlUI(false), 1500);
+>>>>>>> parent of 186e709 (Finished????)
     } else if (line.startsWith("DL_ERR ")) {
       showDlUI(true);
-      const err = line.slice(7);
-      setDlProgress(parseInt($("dlProg").style.width)||0, "Error: " + err);
-      showToast("Download failed: " + err, 'error');
+      setDlProgress(parseInt($("dlProg").value,10)||0, "Error: " + line.slice(7));
+      alert("Download failed: " + line.slice(7));
     }
 
+    // Wi-Fi parsing
     else if (line.startsWith("WIFI_NET ")) {
       const payload = line.slice(9);
       const [ssid, sig] = payload.split("|");
       const signal = parseInt(sig||"0",10)||0;
-      if(ssid && ssid.trim()) {
+      if(ssid && ssid.trim()){
         const s = ssid.trim();
         const i = wifiNets.findIndex(x=>x.ssid===s);
         if(i>=0) wifiNets[i].signal = Math.max(wifiNets[i].signal, signal);
@@ -1123,47 +1327,45 @@ function onBleText(text) {
     } else if (line === "WIFI_SCAN_DONE") {
       wifiNets.sort((a,b)=>b.signal-a.signal);
       wifiRenderNets();
-      logBle("Wi-Fi scan complete");
-      showToast("Found " + wifiNets.length + " networks", 'success');
+      logBle("Wi-Fi scan done.");
     } else if (line.startsWith("WIFI_STATE ")) {
       wifiSetState(line.slice(11).trim(), $("wifiIp").textContent === "-" ? "" : $("wifiIp").textContent);
     } else if (line.startsWith("WIFI_IP ")) {
       wifiSetState($("wifiState").textContent, line.slice(8).trim());
     } else if (line.startsWith("WIFI_ERR ")) {
-      showToast("Wi-Fi error: " + line.slice(9), 'error');
+      alert("Wi-Fi error: " + line.slice(9));
     }
 
     logBle(line);
   }
 }
 
-async function bleWriteLine(line) {
+async function bleWriteLine(line){
   if(!ble.connected || !ble.rx) throw new Error("Not connected");
   if(!line.endsWith("\n")) line += "\n";
   const data = enc(line);
 
+  // iOS reliability: prefer writeValue
   if (ble.rx.writeValue) await ble.rx.writeValue(data);
   else await ble.rx.writeValueWithoutResponse(data);
 }
 
-function stopPoll() {
+function stopPoll(){
   if(ble.pollTimer) clearInterval(ble.pollTimer);
   ble.pollTimer = null;
 }
 
-async function statusOnce() {
-  await bleWriteLine("STATUS");
-}
+async function statusOnce(){ await bleWriteLine("STATUS"); }
 
-function startPoll() {
+function startPoll(){
   stopPoll();
   ble.pollTimer = setInterval(()=>{
     if(ble.connected) bleWriteLine("STATUS").catch(()=>{});
   }, 300);
-  logBle("Polling status...");
+  logBle("Polling STATUS…");
 }
 
-function cleanupBleState() {
+function cleanupBleState(){
   stopPoll();
   ble.connected = false;
   ble.server = null;
@@ -1174,19 +1376,19 @@ function cleanupBleState() {
   refreshCrates();
 }
 
-async function bleConnect() {
+async function bleConnect(){
   if(!window.isSecureContext) throw new Error("Must be HTTPS");
   if(!navigator.bluetooth) throw new Error("WebBluetooth not available");
 
+  // prevent double-click / overlapping connects
   $("bleConnectBtn").disabled = true;
 
-  try {
-    logBle("Requesting device...");
-    showToast("Opening Bluetooth picker...", 'info');
+  try{
+    logBle("Requesting device…");
 
     const mode = $("bleMode").value;
 
-    if(mode === "name") {
+    if(mode === "name"){
       ble.device = await navigator.bluetooth.requestDevice({
         filters: [{ namePrefix: "DVS" }],
         optionalServices: [UART_SERVICE_UUID],
@@ -1199,22 +1401,21 @@ async function bleConnect() {
     }
 
     ble.device.addEventListener("gattserverdisconnected", ()=>{
-      logBle("GATT disconnected");
-      showToast("Bluetooth disconnected", 'error');
+      logBle("GATT disconnected.");
       cleanupBleState();
     });
 
-    logBle("Connecting to GATT...");
+    logBle("Connecting GATT…");
     ble.server = await ble.device.gatt.connect();
 
-    logBle("Getting UART service...");
+    logBle("Getting UART service…");
     ble.svc = await ble.server.getPrimaryService(UART_SERVICE_UUID);
 
-    logBle("Getting characteristics...");
+    logBle("Getting characteristics…");
     ble.rx = await ble.svc.getCharacteristic(UART_RX_UUID);
     ble.tx = await ble.svc.getCharacteristic(UART_TX_UUID);
 
-    logBle("Enabling notifications...");
+    logBle("Enabling notifications…");
     await ble.tx.startNotifications();
 
     ble.tx.addEventListener("characteristicvaluechanged", (ev)=>{
@@ -1223,34 +1424,33 @@ async function bleConnect() {
       onBleText(dec(bytes));
     });
 
+    // NOW we are truly connected
     ble.connected = true;
     setBleUi(true);
     refreshCrates();
-    logBle("✅ BLE connected");
-    showToast("Connected to Pi!", 'success');
+    logBle("BLE connected ✅");
   } finally {
+    // enable connect button only if still disconnected
     $("bleConnectBtn").disabled = ble.connected;
   }
 }
 
-async function bleDisconnect() {
-  try {
+async function bleDisconnect(){
+  try{
     stopPoll();
     if(ble.device?.gatt?.connected) ble.device.gatt.disconnect();
   } catch {}
   cleanupBleState();
-  logBle("BLE disconnected");
-  showToast("Disconnected", 'info');
+  logBle("BLE disconnected.");
 }
 /* ================================================================ */
 
 /* ======================== Wi-Fi UI ======================== */
 let wifiNets = [];
-
-function wifiRenderNets() {
+function wifiRenderNets(){
   const sel = $("wifiSsid");
   sel.innerHTML = "";
-  if(!wifiNets.length) {
+  if(!wifiNets.length){
     const opt = document.createElement("option");
     opt.value = "";
     opt.textContent = "(no networks — tap Scan)";
@@ -1268,45 +1468,37 @@ function wifiRenderNets() {
     sel.appendChild(opt);
   });
 }
-
-function wifiSetState(state, ip="") {
+function wifiSetState(state, ip=""){
   $("wifiState").textContent = state || "unknown";
   $("wifiIp").textContent = ip || "-";
 }
-
-async function wifiScan() {
-  if(!ble.connected) return showToast("Connect to Pi first", 'error');
+async function wifiScan(){
+  if(!ble.connected) return alert("Connect BLE first.");
   wifiNets = [];
   wifiRenderNets();
   wifiSetState("scanning","");
   await bleWriteLine("WIFI_SCAN");
-  showToast("Scanning for networks...", 'info');
 }
-
-async function wifiJoin() {
-  if(!ble.connected) return showToast("Connect to Pi first", 'error');
+async function wifiJoin(){
+  if(!ble.connected) return alert("Connect BLE first.");
   const ssid = $("wifiSsid").value;
   const pwd = $("wifiPass").value;
-  if(!ssid) return showToast("Choose a network first", 'error');
+  if(!ssid) return alert("Choose a network first.");
   wifiSetState("connecting","");
   await bleWriteLine(`WIFI_JOIN ${ssid}|${pwd}`);
-  showToast("Connecting to " + ssid + "...", 'info');
 }
-
-async function wifiStatus() {
-  if(!ble.connected) return showToast("Connect to Pi first", 'error');
+async function wifiStatus(){
+  if(!ble.connected) return alert("Connect BLE first.");
   await bleWriteLine("WIFI_STATUS");
 }
-
-async function wifiOff() {
-  if(!ble.connected) return showToast("Connect to Pi first", 'error');
+async function wifiOff(){
+  if(!ble.connected) return alert("Connect BLE first.");
   await bleWriteLine("WIFI_OFF");
-  showToast("Turning Wi-Fi off...", 'info');
 }
 /* ================================================================ */
 
-/* ======================== YouTube API ======================== */
-async function youtubeSearch(query) {
+/* ======================== YouTube API (No Auth Required) ======================== */
+async function youtubeSearch(query){
   if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.includes("YOUR_")) {
     throw new Error("Set YOUTUBE_API_KEY first");
   }
@@ -1319,7 +1511,7 @@ async function youtubeSearch(query) {
   return data;
 }
 
-async function youtubeGetVideoDetails(videoIds) {
+async function youtubeGetVideoDetails(videoIds){
   const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${YOUTUBE_API_KEY}`;
   
   const r = await fetch(url);
@@ -1329,6 +1521,7 @@ async function youtubeGetVideoDetails(videoIds) {
 }
 /* ================================================================ */
 
+<<<<<<< HEAD
 /* ======================== NFC Modal ======================== */
 function showNfcModal() {
   const modal = $("nfcModal");
@@ -1389,13 +1582,16 @@ async function scanNfc() {
 /* ================================================================ */
 
 /* ======================== Search & Crate ======================== */
+=======
+/* ======================== Auto search + crate cap ======================== */
+>>>>>>> parent of 186e709 (Finished????)
 const selected = [];
 let lastSearchItems = [];
 let searchTimer = null;
 let lastQuery = "";
 let blurHideTimer = null;
 
-function fmtDur(ms) {
+function fmtDur(ms){
   const s = Math.round(ms/1000);
   const m = Math.floor(s/60);
   const r = s % 60;
@@ -1403,6 +1599,7 @@ function fmtDur(ms) {
 }
 
 function parseDuration(duration) {
+  // Parse ISO 8601 duration format (PT#M#S or PT#H#M#S)
   const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!match) return 0;
   
@@ -1413,82 +1610,56 @@ function parseDuration(duration) {
   return (hours * 3600 + minutes * 60 + seconds) * 1000;
 }
 
-function crateTotalMs() {
-  return selected.reduce((a,t)=>a+(t.duration_ms||0),0);
-}
-
-function updateCrateDurLabel() {
-  $("crateDurLabel").textContent = fmtDur(crateTotalMs());
-}
-
-function isAlreadySelected(id) {
-  return selected.some(t=>t.id===id);
-}
-
-function canAddTrack(t) {
+function crateTotalMs(){ return selected.reduce((a,t)=>a+(t.duration_ms||0),0); }
+function updateCrateDurLabel(){ $("crateDurLabel").textContent = fmtDur(crateTotalMs()); }
+function isAlreadySelected(id){ return selected.some(t=>t.id===id); }
+function canAddTrack(t){
   if(!t) return false;
   if(t.duration_ms > CRATE_MAX_MS) return false;
   return (crateTotalMs()+t.duration_ms) <= CRATE_MAX_MS;
 }
 
-function renderSelected() {
+function renderSelected(){
   $("selectedCount").textContent = String(selected.length);
   updateCrateDurLabel();
   const ol = $("selected");
   ol.innerHTML = "";
-  
-  if (selected.length === 0) {
-    ol.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎵</div><div>No tracks selected yet</div></div>';
-    return;
-  }
-  
   selected.forEach((t, idx)=>{
     const li = document.createElement("li");
+    li.className = "row";
+    li.style.borderBottom = "1px solid #eee";
     li.innerHTML = `
-      <div class="track-info">
-        <div class="track-name">${t.name}</div>
-        <div class="track-meta">
-          ${t.artist} • <span class="duration-badge">${fmtDur(t.duration_ms)}</span>
-        </div>
+      <div style="max-width:70%;">
+        <b>${t.name}</b> — ${t.artist}<br/>
+        <small>${fmtDur(t.duration_ms)} | <a href="${t.url}" target="_blank">View on YouTube</a></small>
       </div>
-      <div class="track-controls">
-        <button class="btn-secondary" data-act="up" ${idx===0?'disabled':''}>↑</button>
-        <button class="btn-secondary" data-act="down" ${idx===selected.length-1?'disabled':''}>↓</button>
-        <button class="btn-danger" data-act="remove">✕</button>
+      <div class="btnRow">
+        <button data-act="up">↑</button>
+        <button data-act="down">↓</button>
+        <button class="danger" data-act="remove">Remove</button>
       </div>
     `;
-    
     li.querySelector('[data-act="up"]').onclick = ()=>{
       if(idx===0) return;
       [selected[idx-1], selected[idx]] = [selected[idx], selected[idx-1]];
-      renderSelected();
-      renderResults(lastSearchItems);
+      renderSelected(); renderResults(lastSearchItems);
     };
-    
     li.querySelector('[data-act="down"]').onclick = ()=>{
       if(idx===selected.length-1) return;
       [selected[idx+1], selected[idx]] = [selected[idx], selected[idx+1]];
-      renderSelected();
-      renderResults(lastSearchItems);
+      renderSelected(); renderResults(lastSearchItems);
     };
-    
     li.querySelector('[data-act="remove"]').onclick = ()=>{
       selected.splice(idx,1);
-      renderSelected();
-      renderResults(lastSearchItems);
-      showToast("Track removed", 'info');
+      renderSelected(); renderResults(lastSearchItems);
     };
-    
     ol.appendChild(li);
   });
 }
 
-function clearResults() {
-  lastSearchItems = [];
-  $("results").innerHTML = "";
-}
+function clearResults(){ lastSearchItems=[]; $("results").innerHTML=""; }
 
-function renderResults(items) {
+function renderResults(items){
   lastSearchItems = items || [];
   const root = $("results");
   root.innerHTML = "";
@@ -1501,59 +1672,58 @@ function renderResults(items) {
     const already = isAlreadySelected(t.id);
     const wouldExceed = !already && (total + t.duration_ms > CRATE_MAX_MS);
 
-    const div = document.createElement("div");
-    div.className = "track-item";
-    
-    let meta = `${fmtDur(t.duration_ms)}`;
-    if (tooLong) meta += ' <span class="duration-badge warning-badge">(too long)</span>';
-    if (wouldExceed) meta += ' <span class="duration-badge warning-badge">(crate full)</span>';
-    
-    div.innerHTML = `
-      <div class="track-info">
-        <div class="track-name">${t.name}</div>
-        <div class="track-meta">${t.artist} • ${meta}</div>
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <div style="max-width:70%;">
+        <b>${t.name}</b> — ${t.artist}<br/>
+        <small>${fmtDur(t.duration_ms)}
+          ${tooLong ? "(too long)" : ""}
+          ${wouldExceed ? "(crate full)" : ""}
+        </small>
       </div>
-      <button class="btn-primary" ${tooLong||already||wouldExceed ? "disabled":""}>
-        ${already ? "✓ Added" : (wouldExceed ? "Full" : "+ Add")}
-      </button>
+      <div class="btnRow">
+        <button ${tooLong||already||wouldExceed ? "disabled":""}>
+          ${already ? "Added" : (wouldExceed ? "Full" : "Add")}
+        </button>
+      </div>
     `;
-    
-    div.querySelector("button").onclick = ()=>{
+    row.querySelector("button").onclick = ()=>{
       if(tooLong || already) return;
-      if(!canAddTrack(t)) {
-        showToast("Crate limit is 10:00 total", 'error');
+      if(!canAddTrack(t)){
+        alert("Crate limit is 10:00 total.");
         return;
       }
       selected.push(t);
       renderSelected();
       renderResults(items);
-      showToast("Track added!", 'success');
     };
-    
-    root.appendChild(div);
+    root.appendChild(row);
   });
 }
 
-async function doSearchAuto(q) {
+async function doSearchAuto(q){
   q = q.trim();
-  if(q.length < 2) {
-    $("searchHint").textContent = "Type at least 2 characters";
+  if(q.length < 2){
+    $("searchHint").textContent = "Type at least 2 characters.";
     clearResults();
     return;
   }
   if(q === lastQuery) return;
   lastQuery = q;
 
-  $("searchHint").textContent = "Searching YouTube...";
-  try {
+  $("searchHint").textContent = "Searching…";
+  try{
+    // Search for videos
     const searchData = await youtubeSearch(q);
     
     if (!searchData.items || searchData.items.length === 0) {
-      $("searchHint").textContent = `No results for "${q}"`;
+      $("searchHint").textContent = `No results for: "${q}"`;
       clearResults();
       return;
     }
 
+    // Get video details including duration
     const videoIds = searchData.items.map(item => item.id.videoId).join(',');
     const detailsData = await youtubeGetVideoDetails(videoIds);
     
@@ -1565,42 +1735,39 @@ async function doSearchAuto(q) {
       duration_ms: parseDuration(video.contentDetails.duration),
     }));
     
-    $("searchHint").textContent = `Found ${items.length} results for "${q}"`;
+    $("searchHint").textContent = `Results for: "${q}" (tap outside to hide)`;
     renderResults(items);
-  } catch(e) {
-    $("searchHint").textContent = "Search failed (check API key)";
+  } catch(e){
+    $("searchHint").textContent = "Search failed (check API key).";
     console.error(e);
-    showToast("Search failed", 'error');
   }
 }
 
-function onSearchInput() {
+function onSearchInput(){
   const q = $("searchBox").value;
   if(searchTimer) clearTimeout(searchTimer);
-  searchTimer = setTimeout(()=>doSearchAuto(q), 400);
+  searchTimer = setTimeout(()=>doSearchAuto(q), 250);
 }
-
-function onSearchBlur() {
+function onSearchBlur(){
   if(blurHideTimer) clearTimeout(blurHideTimer);
   blurHideTimer = setTimeout(()=>{
     clearResults();
     $("searchHint").textContent = "";
   }, 200);
 }
-
-function onSearchFocus() {
+function onSearchFocus(){
   if(blurHideTimer) clearTimeout(blurHideTimer);
   blurHideTimer = null;
-  $("searchHint").textContent = "Type to search tracks";
+  $("searchHint").textContent = "Type to search (results auto-hide when you tap outside).";
 }
 
-function saveCrate() {
+function saveCrate(){
   const name = $("crateName").value.trim();
-  if(!name) return showToast("Enter a crate name", 'error');
-  if(!selected.length) return showToast("Add some tracks first", 'error');
+  if(!name) return alert("Enter a crate name.");
+  if(!selected.length) return alert("Add some tracks first.");
 
   const total = crateTotalMs();
-  if(total > CRATE_MAX_MS) return showToast("Crate exceeds 10:00 limit", 'error');
+  if(total > CRATE_MAX_MS) return alert("Crate total exceeds 10:00.");
 
   const crates = loadCrates();
   crates.unshift({
@@ -1616,46 +1783,63 @@ function saveCrate() {
   renderSelected();
   $("crateName").value = "";
   refreshCrates();
-  showToast("Crate saved!", 'success');
+  alert("Crate saved.");
 }
 
-function refreshCrates() {
+function refreshCrates(){
   const crates = loadCrates();
   const ul = $("crates");
   ul.innerHTML = "";
-  
-  if (crates.length === 0) {
-    ul.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><div>No saved crates yet</div></div>';
-    return;
-  }
 
   crates.forEach((c)=>{
     const li = document.createElement("li");
-    li.className = "crate-list-item";
+    li.className = "row";
     li.innerHTML = `
-      <div class="crate-header">
-        <div class="crate-title">${c.name}</div>
-        <div class="crate-badges">
-          <span class="badge badge-tracks">${c.tracks.length} tracks</span>
-          <span class="badge badge-duration">${fmtDur(c.total_ms || 0)}</span>
-        </div>
-        <div class="crate-date">${new Date(c.createdAt).toLocaleDateString()} ${new Date(c.createdAt).toLocaleTimeString()}</div>
+      <div style="max-width:70%;">
+        <b>${c.name}</b>
+        <span class="chip">${c.tracks.length} tracks</span>
+        <span class="chip">${fmtDur(c.total_ms || 0)}</span><br/>
+        <small>${new Date(c.createdAt).toLocaleString()}</small>
       </div>
+<<<<<<< HEAD
       <div class="crate-actions">
         <button class="btn-success" data-act="send" ${ble.connected ? "" : "disabled"}>Burn Vinyl</button>
         <button class="btn-secondary" data-act="load">Load</button>
         <button class="btn-danger" data-act="del">Delete</button>
+=======
+      <div class="btnRow">
+        <button data-act="send" ${ble.connected ? "" : "disabled"}>Send + Download</button>
+        <button data-act="load">Load</button>
+        <button class="danger" data-act="del">Delete</button>
+>>>>>>> parent of 186e709 (Finished????)
       </div>
     `;
 
     li.querySelector('[data-act="send"]').onclick = async ()=>{
-      if(!ble.connected) return showToast("Connect to Pi first", 'error');
+      if(!ble.connected) return alert("Connect BLE first.");
 
+<<<<<<< HEAD
       // Store the crate for later use after NFC scan
       window.currentCrateToBurn = c;
       
       // Show NFC modal
       showNfcModal();
+=======
+      showDlUI(true);
+      setDlProgress(0, "Sending crate to Pi…");
+
+      const safe = (s)=>String(s||"").replace(/\|/g," ").replace(/\n/g," ").trim();
+
+      await bleWriteLine(`CRATE_BEGIN ${safe(c.name)}`);
+      await bleWriteLine(`CRATE_TOTAL_MS ${c.total_ms || 0}`);
+      for(const t of c.tracks){
+        await bleWriteLine(`CRATE_TRACK ${safe(t.id)}|${t.duration_ms||0}|${safe(t.url)}|${safe(t.name)}|${safe(t.artist)}`);
+      }
+      await bleWriteLine("CRATE_END");
+
+      setDlProgress(0, "Starting yt-dlp on Pi…");
+      await bleWriteLine(`DL_START ${safe(c.name)}`);
+>>>>>>> parent of 186e709 (Finished????)
     };
 
     li.querySelector('[data-act="load"]').onclick = ()=>{
@@ -1663,15 +1847,13 @@ function refreshCrates() {
       c.tracks.forEach(t=>selected.push(t));
       renderSelected();
       $("crateName").value = c.name;
-      showToast("Crate loaded!", 'success');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      alert("Crate loaded.");
     };
 
     li.querySelector('[data-act="del"]').onclick = ()=>{
       if(!confirm(`Delete crate "${c.name}"?`)) return;
       saveCrates(crates.filter(x=>x.id!==c.id));
       refreshCrates();
-      showToast("Crate deleted", 'info');
     };
 
     ul.appendChild(li);
@@ -1679,6 +1861,7 @@ function refreshCrates() {
 }
 /* ================================================================ */
 
+<<<<<<< HEAD
 /* ======================== Advanced Options Modal ======================== */
 function showAdvancedOptions() {
   const overlay = document.getElementById('advancedOverlay');
@@ -1693,14 +1876,12 @@ function hideAdvancedOptions() {
 }
 /* ================================================================ */
 
+=======
+>>>>>>> parent of 186e709 (Finished????)
 /* ======================== Wire UI ======================== */
 $("bleConnectBtn").onclick = async ()=>{
   try { await bleConnect(); }
-  catch(e) { 
-    safeAlertBleError(e);
-    cleanupBleState();
-    $("bleConnectBtn").disabled = false;
-  }
+  catch(e){ safeAlertBleError(e); cleanupBleState(); $("bleConnectBtn").disabled = false; }
 };
 
 $("logoTitle").onclick = ()=> showAdvancedOptions();
@@ -1761,12 +1942,9 @@ $("nfcScanBtn").onclick = async ()=> {
 $("saveCrateBtn").onclick = ()=> saveCrate();
 $("refreshCratesBtn").onclick = ()=> refreshCrates();
 $("clearSelectedBtn").onclick = ()=>{
-  if (selected.length === 0) return;
-  if (!confirm("Clear all tracks from current playlist?")) return;
   selected.length = 0;
   renderSelected();
   renderResults(lastSearchItems);
-  showToast("Playlist cleared", 'info');
 };
 /* ================================================================ */
 
@@ -1776,14 +1954,11 @@ wifiRenderNets();
 renderSelected();
 refreshCrates();
 
-(function boot() {
-  $("searchHint").textContent = "Type to search tracks";
-  
-  // Add subtle entrance animations
-  const cards = document.querySelectorAll('.card');
-  cards.forEach((card, i) => {
-    card.style.animationDelay = `${i * 0.1}s`;
-  });
+(function boot(){
+  $("env").textContent =
+    `secureContext=${window.isSecureContext} | navigator.bluetooth=${!!navigator.bluetooth} | url=${location.href}`;
+
+  $("searchHint").textContent = "Type to search YouTube Music (results auto-hide when you tap outside).";
 })();
 </script>
 </body>
