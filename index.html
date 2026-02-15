@@ -830,20 +830,20 @@
       <h1>BurnVinyl</h1>
     </header>
 
-    <!-- BLE Connection -->
-    <div class="card">
-      <h2><span class="section-number">1</span> Bluetooth Connection</h2>
-      
-      <div class="btn-row">
-        <button id="bleConnectBtn" class="btn-primary">Connect to Pi</button>
-        <button id="bleDisconnectBtn" class="btn-danger" disabled>Disconnect</button>
+    <!-- Advanced Options (BLE/WiFi) - Compact Corner Element -->
+    <div style="position: fixed; top: 90px; right: 16px; z-index: 50;">
+      <div class="collapsible-header collapsed" id="bleAdvancedHeader" style="padding: 12px 20px; margin: 0; background: var(--warm-white); border: 2px solid var(--border-subtle); border-radius: 4px; box-shadow: 0 2px 8px rgba(42, 37, 34, 0.15); cursor: pointer;">
+        <span style="color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">⚙️ Advanced</span>
       </div>
+      
+      <div class="collapsible-content collapsed" id="bleAdvancedContent" style="position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--warm-white); border: 1px solid var(--border-subtle); border-radius: 2px; padding: 20px; min-width: 320px; max-width: 90vw; box-shadow: 0 4px 20px rgba(42, 37, 34, 0.15);">
+        <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--burgundy); margin-bottom: 16px;">Bluetooth & Wi-Fi</h3>
+        
+        <div class="btn-row" style="margin-bottom: 20px;">
+          <button id="bleConnectBtn" class="btn-primary">Connect to Pi</button>
+          <button id="bleDisconnectBtn" class="btn-danger" disabled>Disconnect</button>
+        </div>
 
-      <div class="collapsible-header collapsed" id="bleAdvancedHeader">
-        <span style="color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">Advanced Options</span>
-      </div>
-      
-      <div class="collapsible-content collapsed" id="bleAdvancedContent">
         <select id="bleMode">
           <option value="uuid" selected>Filter by UART UUID</option>
           <option value="name">Filter by Name (DVS)</option>
@@ -859,7 +859,7 @@
 
         <!-- Wi-Fi Setup -->
         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-subtle);">
-          <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--burgundy); margin-bottom: 16px;">Wi-Fi Setup</h3>
+          <h3 style="font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--burgundy); margin-bottom: 16px;">Wi-Fi Setup</h3>
           
           <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; font-style: italic;">
             Connect your Pi to Wi-Fi for downloads. You can disable Wi-Fi during playback.
@@ -895,7 +895,7 @@
 
     <!-- Search -->
     <div class="card">
-      <h2><span class="section-number">2</span> Search Music</h2>
+      <h2><span class="section-number">1</span> Search Music</h2>
       
       <div class="search-wrapper">
         <div class="search-icon">🔍</div>
@@ -919,7 +919,7 @@
 
     <!-- Current Crate -->
     <div class="card">
-      <h2><span class="section-number">3</span> Current Playlist</h2>
+      <h2><span class="section-number">2</span> Current Playlist</h2>
       
       <div class="crate-counter">
         <div>
@@ -944,7 +944,7 @@
 
     <!-- Saved Crates -->
     <div class="card">
-      <h2><span class="section-number">4</span> Your Crates</h2>
+      <h2><span class="section-number">3</span> Your Crates</h2>
       
       <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; font-style: italic;">
         Saved locally on your device
