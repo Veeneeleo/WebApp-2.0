@@ -697,12 +697,138 @@
         padding: 12px 16px;
       }
     }
+
+    /* Apple-style NFC Modal */
+    .nfc-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .nfc-modal-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .nfc-modal {
+      background: var(--warm-white);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 340px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nfc-modal-overlay.visible .nfc-modal {
+      transform: scale(1);
+    }
+
+    .nfc-modal-content {
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .nfc-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, var(--burgundy), var(--deep-red));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      animation: nfcPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes nfcPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(139, 38, 53, 0.4);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 20px rgba(139, 38, 53, 0);
+      }
+    }
+
+    .nfc-icon.scanning {
+      animation: nfcScan 1.5s linear infinite;
+    }
+
+    @keyframes nfcScan {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .nfc-icon.complete {
+      background: linear-gradient(135deg, var(--deep-brown), #2a2522);
+      animation: nfcComplete 0.5s ease-out;
+    }
+
+    @keyframes nfcComplete {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .nfc-modal h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .nfc-modal p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .nfc-modal-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .nfc-modal-buttons button {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>BurnVinyl</h1>
+      <div class="tagline">Premium Analog Audio Service</div>
     </header>
 
     <!-- BLE Connection -->
@@ -731,46 +857,46 @@
         </div>
 
         <div class="log-container" id="bleLog"></div>
-      </div>
-    </div>
 
-    <!-- Wi-Fi -->
-    <div class="card">
-      <h2><span class="section-number">2</span> Wi-Fi Setup</h2>
-      
-      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; font-style: italic;">
-        Connect your Pi to Wi-Fi for downloads. You can disable Wi-Fi during playback.
-      </p>
+        <!-- Wi-Fi Setup -->
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-subtle);">
+          <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--burgundy); margin-bottom: 16px;">Wi-Fi Setup</h3>
+          
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; font-style: italic;">
+            Connect your Pi to Wi-Fi for downloads. You can disable Wi-Fi during playback.
+          </p>
 
-      <div class="btn-row">
-        <button id="wifiScanBtn" class="btn-secondary" disabled>Scan Networks</button>
-        <button id="wifiStatusBtn" class="btn-secondary" disabled>Check Status</button>
-        <button id="wifiOffBtn" class="btn-danger" disabled>Turn Off</button>
-      </div>
+          <div class="btn-row">
+            <button id="wifiScanBtn" class="btn-secondary" disabled>Scan Networks</button>
+            <button id="wifiStatusBtn" class="btn-secondary" disabled>Check Status</button>
+            <button id="wifiOffBtn" class="btn-danger" disabled>Turn Off</button>
+          </div>
 
-      <select id="wifiSsid" disabled>
-        <option value="">(scan for networks first)</option>
-      </select>
+          <select id="wifiSsid" disabled>
+            <option value="">(scan for networks first)</option>
+          </select>
 
-      <input id="wifiPass" type="password" placeholder="Wi-Fi password (leave blank if open)" disabled />
+          <input id="wifiPass" type="password" placeholder="Wi-Fi password (leave blank if open)" disabled />
 
-      <div class="btn-row">
-        <button id="wifiJoinBtn" class="btn-success" disabled>Connect to Network</button>
-      </div>
+          <div class="btn-row">
+            <button id="wifiJoinBtn" class="btn-success" disabled>Connect to Network</button>
+          </div>
 
-      <div style="margin-top: 20px; padding: 16px; background: var(--cream); border-radius: 2px; font-size: 14px; border: 1px solid var(--border-subtle);">
-        <div style="color: var(--text-secondary); margin-bottom: 6px;">
-          Status: <span id="wifiState" style="color: var(--burgundy); font-weight: 600;">unknown</span>
-        </div>
-        <div style="color: var(--text-secondary);">
-          IP: <span id="wifiIp" style="color: var(--burgundy); font-weight: 600;">-</span>
+          <div style="margin-top: 20px; padding: 16px; background: var(--cream); border-radius: 2px; font-size: 14px; border: 1px solid var(--border-subtle);">
+            <div style="color: var(--text-secondary); margin-bottom: 6px;">
+              Status: <span id="wifiState" style="color: var(--burgundy); font-weight: 600;">unknown</span>
+            </div>
+            <div style="color: var(--text-secondary);">
+              IP: <span id="wifiIp" style="color: var(--burgundy); font-weight: 600;">-</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Search -->
     <div class="card">
-      <h2><span class="section-number">3</span> Search Music</h2>
+      <h2><span class="section-number">2</span> Search Music</h2>
       
       <div class="search-wrapper">
         <div class="search-icon">🔍</div>
@@ -794,7 +920,7 @@
 
     <!-- Current Crate -->
     <div class="card">
-      <h2><span class="section-number">4</span> Current Playlist</h2>
+      <h2><span class="section-number">3</span> Current Playlist</h2>
       
       <div class="crate-counter">
         <div>
@@ -810,7 +936,9 @@
 
       <input id="crateName" type="text" placeholder="Name your crate (e.g., Friday Night Set)" />
       
+      <input id="crateRfid" type="text" placeholder="Vinyl RFID code (optional)" style="margin-top: 14px;" />
       <div style="font-size: 13px; color: var(--text-muted); margin-top: 8px; font-style: italic;">
+        💿 Associate this crate with a physical vinyl's RFID tag
       </div>
 
       <div class="btn-row">
@@ -820,7 +948,7 @@
 
     <!-- Saved Crates -->
     <div class="card">
-      <h2><span class="section-number">5</span> Your Crates</h2>
+      <h2><span class="section-number">4</span> Your Crates</h2>
       
       <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; font-style: italic;">
         Saved locally on your device
@@ -829,6 +957,21 @@
       <button id="refreshCratesBtn" class="btn-secondary" style="width: 100%; margin-bottom: 20px;">Refresh List</button>
 
       <ul class="crate-list" id="crates"></ul>
+    </div>
+  </div>
+
+  <!-- NFC Modal -->
+  <div class="nfc-modal-overlay" id="nfcModal">
+    <div class="nfc-modal">
+      <div class="nfc-modal-content">
+        <div class="nfc-icon" id="nfcIcon">📱</div>
+        <h3 id="nfcTitle">Ready to Burn</h3>
+        <p id="nfcMessage">Tap your vinyl record to begin burning the crate</p>
+        <div class="nfc-modal-buttons">
+          <button class="btn-secondary" id="nfcCancelBtn">Cancel</button>
+          <button class="btn-primary" id="nfcScanBtn">Scan NFC</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1193,6 +1336,65 @@ async function youtubeGetVideoDetails(videoIds) {
 }
 /* ================================================================ */
 
+/* ======================== NFC Modal ======================== */
+function showNfcModal() {
+  const modal = $("nfcModal");
+  const icon = $("nfcIcon");
+  const title = $("nfcTitle");
+  const message = $("nfcMessage");
+  const scanBtn = $("nfcScanBtn");
+  
+  // Reset to initial state
+  icon.className = "nfc-icon";
+  icon.textContent = "📱";
+  title.textContent = "Ready to Burn";
+  message.textContent = "Tap your vinyl record to begin burning the crate";
+  scanBtn.style.display = "";
+  
+  modal.classList.add('visible');
+}
+
+function hideNfcModal() {
+  const modal = $("nfcModal");
+  modal.classList.remove('visible');
+}
+
+async function scanNfc() {
+  const icon = $("nfcIcon");
+  const title = $("nfcTitle");
+  const message = $("nfcMessage");
+  const scanBtn = $("nfcScanBtn");
+  const cancelBtn = $("nfcCancelBtn");
+  
+  // Change to scanning state
+  icon.className = "nfc-icon scanning";
+  icon.textContent = "📡";
+  title.textContent = "Scanning...";
+  message.textContent = "Hold your vinyl record near the device";
+  scanBtn.disabled = true;
+  cancelBtn.disabled = true;
+  
+  // Wait 3 seconds
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  
+  // Change to complete state
+  icon.className = "nfc-icon complete";
+  icon.textContent = "✓";
+  title.textContent = "Complete!";
+  message.textContent = "Vinyl tag detected. Starting burn process...";
+  
+  // Wait a moment to show success
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Hide modal
+  hideNfcModal();
+  
+  // Reset button states
+  scanBtn.disabled = false;
+  cancelBtn.disabled = false;
+}
+/* ================================================================ */
+
 /* ======================== Search & Crate ======================== */
 const selected = [];
 let lastSearchItems = [];
@@ -1447,7 +1649,7 @@ function refreshCrates() {
         <div class="crate-date">${new Date(c.createdAt).toLocaleDateString()} ${new Date(c.createdAt).toLocaleTimeString()}</div>
       </div>
       <div class="crate-actions">
-        <button class="btn-success" data-act="send" ${ble.connected ? "" : "disabled"}>Burn Vinyl</button>
+        <button class="btn-success" data-act="send" ${ble.connected ? "" : "disabled"}>Send & Download</button>
         <button class="btn-secondary" data-act="load">Load</button>
         <button class="btn-danger" data-act="del">Delete</button>
       </div>
@@ -1456,26 +1658,11 @@ function refreshCrates() {
     li.querySelector('[data-act="send"]').onclick = async ()=>{
       if(!ble.connected) return showToast("Connect to Pi first", 'error');
 
-      showDlUI(true);
-      setDlProgress(0, "Sending crate to Pi...");
-
-      const safe = (s)=>String(s||"").replace(/\|/g," ").replace(/\n/g," ").trim();
-
-      try {
-        await bleWriteLine(`CRATE_BEGIN ${safe(c.name)}`);
-        await bleWriteLine(`CRATE_TOTAL_MS ${c.total_ms || 0}`);
-        for(const t of c.tracks) {
-          await bleWriteLine(`CRATE_TRACK ${safe(t.id)}|${t.duration_ms||0}|${safe(t.url)}|${safe(t.name)}|${safe(t.artist)}`);
-        }
-        await bleWriteLine("CRATE_END");
-
-        setDlProgress(0, "Starting download...");
-        await bleWriteLine(`DL_START ${safe(c.name)}`);
-        showToast("Crate sent to Pi!", 'success');
-      } catch(e) {
-        showToast("Failed to send crate", 'error');
-        showDlUI(false);
-      }
+      // Store the crate for later use after NFC scan
+      window.currentCrateToBurn = c;
+      
+      // Show NFC modal
+      showNfcModal();
     };
 
     li.querySelector('[data-act="load"]').onclick = ()=>{
@@ -1536,6 +1723,38 @@ $("wifiOffBtn").onclick = ()=> wifiOff().catch(e=> safeAlertBleError(e));
 $("searchBox").addEventListener("input", onSearchInput);
 $("searchBox").addEventListener("blur", onSearchBlur);
 $("searchBox").addEventListener("focus", onSearchFocus);
+
+$("nfcCancelBtn").onclick = ()=> hideNfcModal();
+$("nfcScanBtn").onclick = async ()=> {
+  await scanNfc();
+  
+  // After NFC scan completes, start the burn process
+  const crates = loadCrates();
+  // Find the crate that triggered this (we'll need to store it)
+  const c = window.currentCrateToBurn;
+  if (!c) return;
+  
+  showDlUI(true);
+  setDlProgress(0, "Sending crate to Pi...");
+
+  const safe = (s)=>String(s||"").replace(/\|/g," ").replace(/\n/g," ").trim();
+
+  try {
+    await bleWriteLine(`CRATE_BEGIN ${safe(c.name)}`);
+    await bleWriteLine(`CRATE_TOTAL_MS ${c.total_ms || 0}`);
+    for(const t of c.tracks) {
+      await bleWriteLine(`CRATE_TRACK ${safe(t.id)}|${t.duration_ms||0}|${safe(t.url)}|${safe(t.name)}|${safe(t.artist)}`);
+    }
+    await bleWriteLine("CRATE_END");
+
+    setDlProgress(0, "Starting download...");
+    await bleWriteLine(`DL_START ${safe(c.name)}`);
+    showToast("Crate sent to Pi!", 'success');
+  } catch(e) {
+    showToast("Failed to send crate", 'error');
+    showDlUI(false);
+  }
+};
 
 $("saveCrateBtn").onclick = ()=> saveCrate();
 $("refreshCratesBtn").onclick = ()=> refreshCrates();
