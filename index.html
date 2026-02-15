@@ -827,17 +827,15 @@
 <body>
   <div class="container">
     <header>
-      <h1>BurnVinyl</h1>
+      <h1 id="logoTitle" style="cursor: pointer; user-select: none;">BurnVinyl</h1>
     </header>
 
-    <!-- Advanced Options (BLE/WiFi) - Compact Corner Element -->
-    <div style="position: fixed; top: 90px; right: 16px; z-index: 50;">
-      <div class="collapsible-header collapsed" id="bleAdvancedHeader" style="padding: 12px 20px; margin: 0; background: var(--warm-white); border: 2px solid var(--border-subtle); border-radius: 4px; box-shadow: 0 2px 8px rgba(42, 37, 34, 0.15); cursor: pointer;">
-        <span style="color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;">⚙️ Advanced</span>
-      </div>
-      
-      <div class="collapsible-content collapsed" id="bleAdvancedContent" style="position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--warm-white); border: 1px solid var(--border-subtle); border-radius: 2px; padding: 20px; min-width: 320px; max-width: 90vw; box-shadow: 0 4px 20px rgba(42, 37, 34, 0.15);">
-        <h3 style="font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--burgundy); margin-bottom: 16px;">Bluetooth & Wi-Fi</h3>
+    <!-- Advanced Options (BLE/WiFi) - Modal Overlay -->
+    <div id="advancedOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: flex-start; justify-content: center; padding-top: 60px; overflow-y: auto;">
+      <div id="bleAdvancedContent" style="background: var(--warm-white); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 28px; width: 90%; max-width: 500px; box-shadow: 0 8px 32px rgba(42, 37, 34, 0.25); margin-bottom: 60px; position: relative;">
+        <button id="closeAdvanced" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; padding: 4px 8px; line-height: 1;">×</button>
+        
+        <h3 style="font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--burgundy); margin-bottom: 20px;">Bluetooth & Wi-Fi</h3>
         
         <div class="btn-row" style="margin-bottom: 20px;">
           <button id="bleConnectBtn" class="btn-primary">Connect to Pi</button>
@@ -1682,16 +1680,17 @@ function refreshCrates() {
 }
 /* ================================================================ */
 
-/* ======================== Collapsible sections ======================== */
-function setupCollapsible(headerId, contentId) {
-  const header = $(headerId);
-  const content = $(contentId);
-  
-  header.onclick = ()=>{
-    const isCollapsed = content.classList.contains('collapsed');
-    content.classList.toggle('collapsed');
-    header.classList.toggle('collapsed');
-  };
+/* ======================== Advanced Options Modal ======================== */
+function showAdvancedOptions() {
+  const overlay = document.getElementById('advancedOverlay');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden'; // Prevent background scrolling
+}
+
+function hideAdvancedOptions() {
+  const overlay = document.getElementById('advancedOverlay');
+  overlay.style.display = 'none';
+  document.body.style.overflow = ''; // Restore background scrolling
 }
 /* ================================================================ */
 
@@ -1703,6 +1702,14 @@ $("bleConnectBtn").onclick = async ()=>{
     cleanupBleState();
     $("bleConnectBtn").disabled = false;
   }
+};
+
+$("logoTitle").onclick = ()=> showAdvancedOptions();
+$("closeAdvanced").onclick = ()=> hideAdvancedOptions();
+
+// Close modal when clicking outside
+document.getElementById('advancedOverlay').onclick = (e)=> {
+  if(e.target.id === 'advancedOverlay') hideAdvancedOptions();
 };
 
 $("bleDisconnectBtn").onclick = ()=> bleDisconnect();
@@ -1769,7 +1776,6 @@ setBleUi(false);
 wifiRenderNets();
 renderSelected();
 refreshCrates();
-setupCollapsible('bleAdvancedHeader', 'bleAdvancedContent');
 
 (function boot() {
   $("searchHint").textContent = "Type to search tracks";
